@@ -1,0 +1,15 @@
+build
+*.cmake
+Makefile
+CMakeCache.txt
+
+Thumbs.db
+.DS_Store
+
+.vs
+.vscode
+.idea
+*.swp
+*.bak
+
+JUCE/
