@@ -14,36 +14,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "Parameters.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
 //==============================================================================
-AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p)
+AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor( AudioPluginAudioProcessor& p, juce::AudioProcessorValueTreeState& state )
+    : AudioProcessorEditor( &p ), processorRef( p ), parameters( state )
 {
-    juce::ignoreUnused (processorRef);
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    lfoOddAttachment  = createControl( Parameters::LFO_ODD,  lfoOddControl );
+    lfoEvenAttachment = createControl( Parameters::LFO_EVEN, lfoEvenControl );
+        
+    setSize( 400, 300 );
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 {
+    // nowt...
 }
 
-//==============================================================================
-void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
+void AudioPluginAudioProcessorEditor::paint( juce::Graphics& g )
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll( getLookAndFeel().findColour( juce::ResizableWindow::backgroundColourId ));
 
-    g.setColour (juce::Colours::white);
-    g.setFont (15.0f);
-    g.drawFittedText ("DOPPLER", getLocalBounds(), juce::Justification::centred, 1);
+    g.setColour( juce::Colours::white );
+    g.setFont( 15.0f );
+    g.drawFittedText( "DOPPLER", getLocalBounds(), juce::Justification::centred, 1 );
 }
 
 void AudioPluginAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    lfoOddControl.setBounds ( 50, 50, 100, 100 );
+    lfoEvenControl.setBounds( 150, 50, 100, 100 );
 }

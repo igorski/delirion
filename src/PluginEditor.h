@@ -14,25 +14,43 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+#ifndef __PLUGIN_EDITOR_H_INCLUDED__
+#define __PLUGIN_EDITOR_H_INCLUDED__
 
 #include "PluginProcessor.h"
 
 //==============================================================================
 class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
 {
-public:
-    explicit AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor&);
-    ~AudioPluginAudioProcessorEditor() override;
+    public:
+        explicit AudioPluginAudioProcessorEditor( AudioPluginAudioProcessor& p, juce::AudioProcessorValueTreeState& state );
+        ~AudioPluginAudioProcessorEditor() override;
 
-    //==============================================================================
-    void paint (juce::Graphics&) override;
-    void resized() override;
+        void paint( juce::Graphics& ) override;
+        void resized() override;
 
-private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    AudioPluginAudioProcessor& processorRef;
+    private:
+        AudioPluginAudioProcessor& processorRef;
+        juce::AudioProcessorValueTreeState& parameters;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
+        /* automatable parameters */
+
+        juce::Slider lfoOddControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoOddAttachment;
+
+        juce::Slider lfoEvenControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoEvenAttachment;
+
+        inline std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> createControl( const juce::String& title, juce::Slider& controlElement )
+        {
+            addAndMakeVisible( controlElement );
+            controlElement.setSliderStyle ( juce::Slider::Rotary );
+            controlElement.setTextBoxStyle( juce::Slider::TextBoxBelow, false, 50, 20 );
+
+            return std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>( parameters, title, controlElement );
+        }
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessorEditor )
 };
+
+#endif
