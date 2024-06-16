@@ -16,7 +16,6 @@
  */
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "DopplerEffect.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesProperties()
     #if ! JucePlugin_IsMidiEffect
@@ -30,7 +29,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
     parameters( *this, nullptr, "PARAMETERS", createParameterLayout()),
     parameterListener( *this, parameters ) 
 {
-    // grab a reference to all automatable parameters
+    // grab a reference to all automatable parameters and initialize the values (to their defined defaults)
 
     lfoOdd  = parameters.getRawParameterValue( Parameters::LFO_ODD );
     lfoEven = parameters.getRawParameterValue( Parameters::LFO_EVEN );
@@ -41,6 +40,9 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
     lowBand = parameters.getRawParameterValue( Parameters::LOW_BAND );
     midBand = parameters.getRawParameterValue( Parameters::MID_BAND );
     hiBand  = parameters.getRawParameterValue( Parameters::HI_BAND );
+
+    reverbMix    = parameters.getRawParameterValue( Parameters::REVERB_MIX );
+    reverbFreeze = parameters.getRawParameterValue( Parameters::REVERB_FREEZE );
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -149,6 +151,10 @@ void AudioPluginAudioProcessor::updateParameters()
 
     bitCrusher->setAmount( *bitAmount );
     bitCrusher->setOutputMix( *bitMix );
+    
+    reverb->setWet( *reverbMix );
+    reverb->setDry( 1.f - *reverbMix );
+    reverb->setMode( *reverbFreeze >= 0.5f ? 1 : 0 );
 
     // TODO check whether this is expensive and cache the last created coefficients
 
@@ -176,15 +182,15 @@ void AudioPluginAudioProcessor::prepareToPlay( double sampleRate, int samplesPer
         bandPassFilters.add( new juce::IIRFilter());
         highPassFilters.add( new juce::IIRFilter());
 
-        lowPassFilters [ i ]->setCoefficients( juce::IIRCoefficients::makeLowPass ( sampleRate, Parameters::Ranges::LOW_BAND_DEF ));
-        bandPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeBandPass( sampleRate, Parameters::Ranges::MID_BAND_DEF, 1.0 ));
-        highPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeHighPass( sampleRate, Parameters::Ranges::HI_BAND_DEF ));
+        lowPassFilters [ i ]->setCoefficients( juce::IIRCoefficients::makeLowPass ( sampleRate, Parameters::Config::LOW_BAND_DEF ));
+        bandPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeBandPass( sampleRate, Parameters::Config::MID_BAND_DEF, 1.0 ));
+        highPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeHighPass( sampleRate, Parameters::Config::HI_BAND_DEF ));
 
         dopplerEffects.add( new DopplerEffect(( float ) sampleRate, samplesPerBlock ));
     }
-
-    bitCrusher = new BitCrusher( 0.5f, 1.f, 0.5f );
-
+    bitCrusher = new BitCrusher( Parameters::Config::BITCRUSHER_AMT_DEF, 1.f, Parameters::Config::BITCRUSHER_WET_DEF );
+    reverb     = new Reverb( sampleRate, Parameters::Config::REVERB_MIX_DEF, Parameters::Config::REVERB_SIZE_DEF );
+    
     // align values with model
     updateParameters();
 }
@@ -197,8 +203,15 @@ void AudioPluginAudioProcessor::releaseResources()
 
     dopplerEffects.clear();
 
-    delete bitCrusher;
-    bitCrusher = nullptr;
+    if ( bitCrusher != nullptr ) {
+        delete bitCrusher;
+        bitCrusher = nullptr;
+    }
+
+    if ( reverb != nullptr ) {
+        delete reverb;
+        reverb = nullptr;
+    }
 }
 
 /* rendering */
@@ -231,6 +244,7 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
 
         bitCrusher->apply( lowBuffer, channel );
         dopplerEffects[ channel ]->apply( midBuffer, channel );
+        reverb->apply( hiBuffer, channel );
 
         // apply the filtering
 

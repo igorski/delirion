@@ -119,9 +119,12 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-        src/Bitcrusher.cpp
-        src/DopplerEffect.cpp
-        src/LFO.cpp
+        src/modules/bitcrusher/Bitcrusher.cpp
+        src/modules/doppler/DopplerEffect.cpp
+        src/modules/oscillator/LFO.cpp
+        src/modules/reverb/Allpass.cpp
+        src/modules/reverb/Comb.cpp
+        src/modules/reverb/Reverb.cpp
         src/PluginEditor.cpp
         src/PluginProcessor.cpp
     )

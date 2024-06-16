@@ -35,7 +35,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor( AudioPluginAud
     hiBandAttachment  = createControl( Parameters::HI_BAND,  hiBandControl );
     hiBandControl.setRange( Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, 1.f );
 
-    setSize( 400, 300 );
+    reverbMixAttachment    = createControl( Parameters::REVERB_MIX,    reverbMixControl );
+    reverbFreezeAttachment = createControl( Parameters::REVERB_FREEZE, reverbFreezeControl );
+
+    setSize( 400, 400 );
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -63,4 +66,7 @@ void AudioPluginAudioProcessorEditor::resized()
     lowBandControl.setBounds( 50, 0, 100, 100 );
     midBandControl.setBounds( 150, 0, 100, 100 );
     hiBandControl.setBounds( 250, 0, 100, 100 );
+
+    reverbMixControl.setBounds( 50, 200, 100, 100 );
+    reverbFreezeControl.setBounds( 150, 200, 100, 100 );
 }

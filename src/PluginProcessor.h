@@ -17,8 +17,9 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "Bitcrusher.h"
-#include "DopplerEffect.h"
+#include "modules/bitcrusher/Bitcrusher.h"
+#include "modules/doppler/DopplerEffect.h"
+#include "modules/reverb/Reverb.h"
 #include "Parameters.h"
 #include "ParameterListener.h"
 #include "ParameterSubscriber.h"
@@ -27,7 +28,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 {
     public:
         static const juce::String pluginUUID; // @todo verify
-
+    
         AudioPluginAudioProcessor();
         ~AudioPluginAudioProcessor() override;
 
@@ -69,21 +70,24 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         {
             std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
-            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LFO_ODD,  "LFO odd",  0.f, 1.f, 0.01f ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LFO_ODD, "LFO odd",  0.f, 1.f, 0.01f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LFO_EVEN, "LFO even", 0.f, 1.f, 0.05f ));
 
-            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_AMOUNT, "Crush amount", 0.f, 1.f, 0.5f ));
-            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_MIX,    "Bit mix",  0.f, 1.f, 0.f ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_AMOUNT, "Crush amount", 0.f, 1.f, Parameters::Config::BITCRUSHER_AMT_DEF ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_MIX, "Bit mix", 0.f, 1.f, Parameters::Config::BITCRUSHER_WET_DEF ));
             
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LOW_BAND, "Low band",
-                Parameters::Ranges::LOW_BAND_MIN, Parameters::Ranges::LOW_BAND_MAX, Parameters::Ranges::LOW_BAND_DEF
+                Parameters::Ranges::LOW_BAND_MIN, Parameters::Ranges::LOW_BAND_MAX, Parameters::Config::LOW_BAND_DEF
             ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::MID_BAND, "Mid band",
-                Parameters::Ranges::MID_BAND_MIN, Parameters::Ranges::MID_BAND_MAX, Parameters::Ranges::MID_BAND_DEF
+                Parameters::Ranges::MID_BAND_MIN, Parameters::Ranges::MID_BAND_MAX, Parameters::Config::MID_BAND_DEF
             ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_BAND, "High band",
-                Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, Parameters::Ranges::HI_BAND_DEF
+                Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, Parameters::Config::HI_BAND_DEF
             ));
+
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::REVERB_MIX, "Reverb mix", 0.f, 1.f, Parameters::Config::REVERB_MIX_DEF ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::REVERB_FREEZE, "Freeze",  0.f, 1.f, 0.f ));    
             
             return { params.begin(), params.end() };
         }
@@ -103,9 +107,10 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         juce::OwnedArray<juce::IIRFilter> bandPassFilters;
         juce::OwnedArray<juce::IIRFilter> highPassFilters;
 
-        BitCrusher* bitCrusher;
+        BitCrusher* bitCrusher = nullptr;
+        Reverb* reverb = nullptr;
         juce::OwnedArray<DopplerEffect> dopplerEffects;
-
+        
         double _sampleRate;
  
         // parameters
@@ -117,6 +122,8 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         std::atomic<float>* lowBand;
         std::atomic<float>* midBand;
         std::atomic<float>* hiBand;
+        std::atomic<float>* reverbMix;
+        std::atomic<float>* reverbFreeze;
         
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessor )

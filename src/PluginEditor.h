@@ -55,6 +55,12 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         juce::Slider hiBandControl;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hiBandAttachment;
 
+        juce::Slider reverbMixControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> reverbMixAttachment;
+
+        juce::Slider reverbFreezeControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> reverbFreezeAttachment;
+
         inline std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> createControl( const juce::String& title, juce::Slider& controlElement )
         {
             addAndMakeVisible( controlElement );
