@@ -14,13 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __PARAMETER_SUBSCRIBER_H_INCLUDED__
-#define __PARAMETER_SUBSCRIBER_H_INCLUDED__
+#pragma once
 
 class ParameterSubscriber
 {
     public:
         virtual void updateParameters() = 0;
 };
-
-#endif

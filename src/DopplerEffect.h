@@ -14,15 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __DOPPLER_H_INCLUDED__
-#define __DOPPLER_H_INCLUDED__
+#pragma once
 
 #include <cmath>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "LFO.h"
-
-// QQQ
-#include "utils/Debug.h"
 
 class DopplerEffect
 {
@@ -59,11 +55,4 @@ class DopplerEffect
 
             return a * frac * frac * frac + b * frac * frac + c * frac + d;
         }
-
-
-Debug debug;
-        float lfoPhase = 0.0f;
-        float lfoFrequency = 0.1f; // LFO frequency in Hz
 };
-
-#endif

@@ -34,6 +34,13 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
 
     lfoOdd  = parameters.getRawParameterValue( Parameters::LFO_ODD );
     lfoEven = parameters.getRawParameterValue( Parameters::LFO_EVEN );
+
+    bitAmount = parameters.getRawParameterValue( Parameters::BIT_AMOUNT );
+    bitMix    = parameters.getRawParameterValue( Parameters::BIT_MIX );
+
+    lowBand = parameters.getRawParameterValue( Parameters::LOW_BAND );
+    midBand = parameters.getRawParameterValue( Parameters::MID_BAND );
+    hiBand  = parameters.getRawParameterValue( Parameters::HI_BAND );
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -139,13 +146,24 @@ void AudioPluginAudioProcessor::updateParameters()
     for ( int channel = 0; channel < channelAmount; ++channel ) {
         dopplerEffects[ channel ]->setSpeed( channel % 2 == 0 ? *lfoOdd : *lfoEven );
     }
+
+    bitCrusher->setAmount( *bitAmount );
+    bitCrusher->setOutputMix( *bitMix );
+
+    // TODO check whether this is expensive and cache the last created coefficients
+
+    for ( int i = 0; i < channelAmount; ++i ) {
+        lowPassFilters [ i ]->setCoefficients( juce::IIRCoefficients::makeLowPass ( _sampleRate, *lowBand ));
+        bandPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeBandPass( _sampleRate, *midBand, 1.0 ));
+        highPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeHighPass( _sampleRate, *hiBand ));
+    }
 }
 
 /* resource management */
 
 void AudioPluginAudioProcessor::prepareToPlay( double sampleRate, int samplesPerBlock )
 {
-    juce::ignoreUnused( sampleRate, samplesPerBlock );
+    _sampleRate = sampleRate;
 
     // dispose previously allocated resources
     releaseResources();
@@ -158,12 +176,16 @@ void AudioPluginAudioProcessor::prepareToPlay( double sampleRate, int samplesPer
         bandPassFilters.add( new juce::IIRFilter());
         highPassFilters.add( new juce::IIRFilter());
 
-        lowPassFilters [ i ]->setCoefficients( juce::IIRCoefficients::makeLowPass ( sampleRate, 200.0 ));
-        bandPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeBandPass( sampleRate, 1000.0, 1.0 ));
-        highPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeHighPass( sampleRate, 5000.0 ));
+        lowPassFilters [ i ]->setCoefficients( juce::IIRCoefficients::makeLowPass ( sampleRate, Parameters::Ranges::LOW_BAND_DEF ));
+        bandPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeBandPass( sampleRate, Parameters::Ranges::MID_BAND_DEF, 1.0 ));
+        highPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeHighPass( sampleRate, Parameters::Ranges::HI_BAND_DEF ));
 
         dopplerEffects.add( new DopplerEffect(( float ) sampleRate, samplesPerBlock ));
     }
+
+    bitCrusher = new BitCrusher( 0.5f, 1.f, 0.5f );
+
+    // align values with model
     updateParameters();
 }
 
@@ -174,6 +196,9 @@ void AudioPluginAudioProcessor::releaseResources()
     highPassFilters.clear();
 
     dopplerEffects.clear();
+
+    delete bitCrusher;
+    bitCrusher = nullptr;
 }
 
 /* rendering */
@@ -188,9 +213,9 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
     int bufferSize    = buffer.getNumSamples();
 
     // Create temporary buffers for each band
-    juce::AudioBuffer<float> lowBuffer ( channelAmount, bufferSize );
-    juce::AudioBuffer<float> midBuffer ( channelAmount, bufferSize );
-    juce::AudioBuffer<float> highBuffer( channelAmount, bufferSize );
+    juce::AudioBuffer<float> lowBuffer( channelAmount, bufferSize );
+    juce::AudioBuffer<float> midBuffer( channelAmount, bufferSize );
+    juce::AudioBuffer<float> hiBuffer ( channelAmount, bufferSize );
 
     for ( int channel = 0; channel < channelAmount; ++channel )
     {
@@ -198,28 +223,30 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
             continue;
         }
 
-       // lowBuffer.copyFrom ( channel, 0, buffer, channel, 0, bufferSize );
+        lowBuffer.copyFrom ( channel, 0, buffer, channel, 0, bufferSize );
         midBuffer.copyFrom ( channel, 0, buffer, channel, 0, bufferSize );
-       // highBuffer.copyFrom( channel, 0, buffer, channel, 0, bufferSize );
+        hiBuffer.copyFrom( channel, 0, buffer, channel, 0, bufferSize );
 
-        // apply the Doppler effect
+        // apply the effects
 
+        bitCrusher->apply( lowBuffer, channel );
         dopplerEffects[ channel ]->apply( midBuffer, channel );
 
         // apply the filtering
 
-     //   lowPassFilters [ channel ]->processSamples( lowBuffer.getWritePointer ( channel ), bufferSize );
-        bandPassFilters[ channel ]->processSamples( midBuffer.getWritePointer ( channel ), bufferSize );
-      //  highPassFilters[ channel ]->processSamples( highBuffer.getWritePointer( channel ), bufferSize );
-    
-        // auto* channelData = buffer.getWritePointer( channel );
+        lowPassFilters [ channel ]->processSamples( lowBuffer.getWritePointer( channel ), bufferSize );
+        bandPassFilters[ channel ]->processSamples( midBuffer.getWritePointer( channel ), bufferSize );
+        highPassFilters[ channel ]->processSamples( hiBuffer.getWritePointer ( channel ), bufferSize );
 
+        // write the effected buffer into the output
+    
         for ( int i = 0; i < bufferSize; ++i ) {
-            buffer.setSample(channel, i,
-                             //  lowBuffer.getSample(channel, i) +
-                               midBuffer.getSample(channel, i) //+
-                               //  highBuffer.getSample( channel, i )
-                                );
+            buffer.setSample(
+                channel, i,
+                lowBuffer.getSample( channel, i ) +
+                midBuffer.getSample( channel, i ) +
+                hiBuffer.getSample ( channel, i )
+            );
         }
     }
 }

@@ -14,14 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __PARAMETERS_H_INCLUDED__
-#define __PARAMETERS_H_INCLUDED__
+#pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
 namespace Parameters {
-    static juce::String LFO_ODD  = "lfoOdd";
-    static juce::String LFO_EVEN = "lfoEven";
-}
+    static juce::String LFO_ODD    = "lfoOdd";
+    static juce::String LFO_EVEN   = "lfoEven";
+    static juce::String BIT_AMOUNT = "bitAmount";
+    static juce::String BIT_MIX    = "bitMix";
+    static juce::String LOW_BAND   = "lowBand";
+    static juce::String MID_BAND   = "midBand";
+    static juce::String HI_BAND    = "hiBand";
 
-#endif
+    namespace Ranges {
+        static float LOW_BAND_MIN = 20.f;
+        static float LOW_BAND_MAX = 500.f;
+        static float LOW_BAND_DEF = 200.f;
+        static float MID_BAND_MIN = 500.f;
+        static float MID_BAND_MAX = 3000.f;
+        static float MID_BAND_DEF = 1000.f;
+        static float HI_BAND_MIN  = 5000.f;
+        static float HI_BAND_MAX  = 11025.f;
+        static float HI_BAND_DEF  = 5000.f;
+    }
+}

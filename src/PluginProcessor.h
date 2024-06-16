@@ -1,10 +1,10 @@
 /*
- * Copyright( c) 2024 Igor Zinken https://www.igorski.nl
+ * Copyright (c) 2024 Igor Zinken https://www.igorski.nl
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
- *( at your option) any later version.
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,17 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __PLUGIN_PROCESSOR_H_INCLUDED__
-#define __PLUGIN_PROCESSOR_H_INCLUDED__
+#pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "Bitcrusher.h"
 #include "DopplerEffect.h"
 #include "Parameters.h"
 #include "ParameterListener.h"
 #include "ParameterSubscriber.h"
-
-/* TODO: not in release build */
-#include "utils/Debug.h"
 
 class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSubscriber
 {
@@ -74,6 +71,19 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LFO_ODD,  "LFO odd",  0.f, 1.f, 0.01f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LFO_EVEN, "LFO even", 0.f, 1.f, 0.05f ));
+
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_AMOUNT, "Crush amount", 0.f, 1.f, 0.5f ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_MIX,    "Bit mix",  0.f, 1.f, 0.f ));
+            
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LOW_BAND, "Low band",
+                Parameters::Ranges::LOW_BAND_MIN, Parameters::Ranges::LOW_BAND_MAX, Parameters::Ranges::LOW_BAND_DEF
+            ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::MID_BAND, "Mid band",
+                Parameters::Ranges::MID_BAND_MIN, Parameters::Ranges::MID_BAND_MAX, Parameters::Ranges::MID_BAND_DEF
+            ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_BAND, "High band",
+                Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, Parameters::Ranges::HI_BAND_DEF
+            ));
             
             return { params.begin(), params.end() };
         }
@@ -93,14 +103,20 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         juce::OwnedArray<juce::IIRFilter> bandPassFilters;
         juce::OwnedArray<juce::IIRFilter> highPassFilters;
 
+        BitCrusher* bitCrusher;
         juce::OwnedArray<DopplerEffect> dopplerEffects;
 
-        Debug debug; // debug only
-
+        double _sampleRate;
+ 
         // parameters
 
         std::atomic<float>* lfoOdd;
         std::atomic<float>* lfoEven;
+        std::atomic<float>* bitAmount;
+        std::atomic<float>* bitMix;
+        std::atomic<float>* lowBand;
+        std::atomic<float>* midBand;
+        std::atomic<float>* hiBand;
         
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessor )
@@ -108,5 +124,3 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
 // @todo
 // const juce::String AudioPluginAudioProcessor::pluginUUID = "12345678-1234-1234-1234-123456789abc";
-
-#endif

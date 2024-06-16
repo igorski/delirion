@@ -14,8 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __PLUGIN_EDITOR_H_INCLUDED__
-#define __PLUGIN_EDITOR_H_INCLUDED__
+#pragma once
 
 #include "PluginProcessor.h"
 
@@ -41,6 +40,21 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         juce::Slider lfoEvenControl;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoEvenAttachment;
 
+        juce::Slider bitAmountControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitAmountAttachment;
+        
+        juce::Slider bitMixControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitMixAttachment;
+
+        juce::Slider lowBandControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowBandAttachment;
+
+        juce::Slider midBandControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> midBandAttachment;
+
+        juce::Slider hiBandControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hiBandAttachment;
+
         inline std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> createControl( const juce::String& title, juce::Slider& controlElement )
         {
             addAndMakeVisible( controlElement );
@@ -52,5 +66,3 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessorEditor )
 };
-
-#endif

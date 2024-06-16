@@ -23,7 +23,6 @@ DopplerEffect::DopplerEffect( float sampleRate, int bufferSize )
     _sampleRate = sampleRate;
 
     lfo = new LFO( sampleRate );
-    // lfo->setRate( 0.01f );
 
     recordBufferSize = 40 * bufferSize; // TODO calculate from param in seconds
     recordBuffer.setSize( 1, recordBufferSize );
@@ -47,6 +46,9 @@ void DopplerEffect::setSpeed( float value )
 
 void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
 {
+    if ( lfo->getRate() == 0.f ) {
+        return; // nothing to do
+    }
     int newWritePointer = recordInput( buffer, channel );
 
     auto* channelData = buffer.getWritePointer( channel );
@@ -54,50 +56,37 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
 
     for ( int i = 0; i < bufferSize; ++i ) {
 
-        /*
-        // --- TODO make it work without warble
-        lfoPhase += lfoFrequency / _sampleRate;
-        if (lfoPhase >= 1.0f)
-            lfoPhase -= 1.0f;
-
-        // Calculate LFO value
-        float lfoValue = std::sin( TWO_PI * lfoPhase );
-
-        // Map LFO value to a distance range (e.g., 1.0 to 10.0 meters)
-        float distance = juce::jmap(lfoValue, -1.0f, 1.0f, 1.0f, 10.0f);
-
-        float listenerVelocity = distance * lfoFrequency * TWO_PI; // Circular motion velocity
-        // --- E.O. TODO make work with LFO code below
-        */
-
-        // move the LFO and convert its position a "distance in meters"
+        // move the LFO and convert its position to a "distance in meters"
         
-        float distance = juce::jmap( lfo->peek(), -1.f, 1.0f, 1.0f, 10.0f );
+        float observerDistance = juce::jmap( lfo->peek(), -1.f, 1.0f, 1.0f, 10.0f );
 
         // apply circular motion to the listener to approximate their movement
 
-        float listenerVelocity = distance * lfo->getRate() * TWO_PI;
+        float observerSpeed = observerDistance * lfo->getRate() * TWO_PI;
 
-        float dopplerFactor = juce::jlimit( 0.5f, 2.f, ( SPEED_OF_SOUND - listenerVelocity ) / SPEED_OF_SOUND );
+        float dopplerRate = juce::jlimit( 0.5f, 2.f, ( SPEED_OF_SOUND - observerSpeed ) / SPEED_OF_SOUND );
 
         // calculate the index of the sample from the record buffer
 
-        float resampledIndex = ( writePosition + i - bufferSize ) / dopplerFactor;
+        float resampledIndex = ( writePosition + i - bufferSize ) / dopplerRate;
         if ( resampledIndex < 0 ) {
             resampledIndex += recordBufferSize;
         }
         int index  = static_cast<int>( resampledIndex ) % recordBufferSize;
         float frac = juce::jlimit( 0.f, 1.f, resampledIndex - index );
 
-        // interpolate sample to write
+        // interpolate the sample to write
         
         int nextIndex = ( index + 1 ) % recordBufferSize;
         float sampleValue = recordBuffer.getSample( 0, index ) * ( 1.0f - frac ) +
                             recordBuffer.getSample( 0, nextIndex ) * frac;
 
-        if ( std::isnan( sampleValue )) sampleValue = 0.f; // QQQ do we need this nonsense ?
+        // @todo the below can be used to sanitize values in case we are overflowing somewhere
 
+        if ( std::isnan( sampleValue )) sampleValue = 0.f;
         juce::jlimit( -1.f, 1.f, sampleValue );
+
+        // @todo interpolation to prevent glitches
                             
         // int prevIndex2 = ( index - 2 + recordBufferSize ) % recordBufferSize;
         // int prevIndex1 = ( index - 1 + recordBufferSize ) % recordBufferSize;
@@ -113,7 +102,6 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
         
         channelData[ i ] = sampleValue;
     }
-
     writePosition = newWritePointer;
 }
 

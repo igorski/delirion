@@ -3,6 +3,11 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+/**
+ * Convenience utility to log messages
+ * by appending onto a log file (which is cleared
+ * whenever a new Debug instance is instantiated)
+ */
 class Debug
 {
     public:

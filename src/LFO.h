@@ -14,8 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __LFO_H_INCLUDED__
-#define __LFO_H_INCLUDED__
+#pragma once
 
 // sine waveform used for the oscillator
 static const int TABLE_SIZE = 128;
@@ -65,5 +64,3 @@ class LFO
         float _accumulator;   // is read offset in wave table buffer
         float SR_OVER_LENGTH;
 };
-
-#endif

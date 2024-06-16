@@ -24,7 +24,17 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor( AudioPluginAud
 {
     lfoOddAttachment  = createControl( Parameters::LFO_ODD,  lfoOddControl );
     lfoEvenAttachment = createControl( Parameters::LFO_EVEN, lfoEvenControl );
-        
+
+    bitAmountAttachment = createControl( Parameters::BIT_AMOUNT, bitAmountControl );
+    bitMixAttachment    = createControl( Parameters::BIT_MIX,    bitMixControl );
+
+    lowBandAttachment = createControl( Parameters::LOW_BAND, lowBandControl );
+    lowBandControl.setRange( Parameters::Ranges::LOW_BAND_MIN, Parameters::Ranges::LOW_BAND_MAX, 1.f );
+    midBandAttachment = createControl( Parameters::MID_BAND, midBandControl );
+    midBandControl.setRange( Parameters::Ranges::MID_BAND_MIN, Parameters::Ranges::MID_BAND_MAX, 1.f );
+    hiBandAttachment  = createControl( Parameters::HI_BAND,  hiBandControl );
+    hiBandControl.setRange( Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, 1.f );
+
     setSize( 400, 300 );
 }
 
@@ -46,4 +56,11 @@ void AudioPluginAudioProcessorEditor::resized()
 {
     lfoOddControl.setBounds ( 50, 50, 100, 100 );
     lfoEvenControl.setBounds( 150, 50, 100, 100 );
+    
+    bitAmountControl.setBounds( 50, 100, 100, 100 );
+    bitMixControl.setBounds( 150, 100, 100, 100 );
+
+    lowBandControl.setBounds( 50, 0, 100, 100 );
+    midBandControl.setBounds( 150, 0, 100, 100 );
+    hiBandControl.setBounds( 250, 0, 100, 100 );
 }
