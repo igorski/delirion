@@ -83,7 +83,9 @@ class Reverb {
         Reverb( double sampleRate, float width, float roomSize );
         ~Reverb();
 
-        // apply effect to incoming sampleBuffer contents
+        inline bool isActive() {
+            return _wet > 0.f;
+        }
 
         void apply( juce::AudioBuffer<float>& buffer, int channel );
 

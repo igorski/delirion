@@ -35,7 +35,6 @@ BitCrusher::~BitCrusher()
 
 void BitCrusher::apply( juce::AudioBuffer<float>& buffer, int channel )
 {
-    // sound should not be crushed ? do nothing
     if ( !isActive() ) {
         return;
     }

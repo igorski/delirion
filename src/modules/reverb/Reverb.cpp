@@ -47,6 +47,9 @@ Reverb::~Reverb()
 
 void Reverb::apply( juce::AudioBuffer<float>& buffer, int channel )
 {
+    if ( !isActive() ) {
+        return;
+    }
     auto* channelData = buffer.getWritePointer( channel );
     int bufferSize    = buffer.getNumSamples();
 
