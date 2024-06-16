@@ -58,8 +58,8 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         juce::Slider reverbMixControl;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> reverbMixAttachment;
 
-        juce::Slider reverbFreezeControl;
-        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> reverbFreezeAttachment;
+        juce::ToggleButton reverbFreezeControl;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> reverbFreezeAttachment;
 
         inline std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> createControl( const juce::String& title, juce::Slider& controlElement )
         {
@@ -68,6 +68,14 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
             controlElement.setTextBoxStyle( juce::Slider::TextBoxBelow, false, 50, 20 );
 
             return std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>( parameters, title, controlElement );
+        }
+
+        inline std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> createControl( const juce::String& title, juce::ToggleButton& controlElement )
+        {
+            addAndMakeVisible( controlElement );
+            controlElement.setTitle( title );
+
+            return std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>( parameters, title, controlElement );
         }
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessorEditor )
