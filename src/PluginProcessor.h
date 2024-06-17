@@ -27,8 +27,6 @@
 class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSubscriber
 {
     public:
-        static const juce::String pluginUUID; // @todo verify
-    
         AudioPluginAudioProcessor();
         ~AudioPluginAudioProcessor() override;
 
@@ -101,6 +99,10 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
         void getStateInformation( juce::MemoryBlock& destData ) override;
         void setStateInformation( const void* data, int sizeInBytes ) override;
+        
+        /* runtime state */
+
+        void resetOscillators();
 
     private:
         juce::OwnedArray<juce::IIRFilter> lowPassFilters;
@@ -108,10 +110,11 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         juce::OwnedArray<juce::IIRFilter> highPassFilters;
 
         BitCrusher* bitCrusher = nullptr;
-        Reverb* reverb = nullptr;
         juce::OwnedArray<DopplerEffect> dopplerEffects;
+        juce::OwnedArray<Reverb> reverbs;
         
         double _sampleRate;
+        bool isPlaying = false;
  
         // parameters
 
@@ -128,6 +131,3 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessor )
 };
-
-// @todo
-// const juce::String AudioPluginAudioProcessor::pluginUUID = "12345678-1234-1234-1234-123456789abc";

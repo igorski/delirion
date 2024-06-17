@@ -143,25 +143,23 @@ void AudioPluginAudioProcessor::changeProgramName( int index, const juce::String
 
 void AudioPluginAudioProcessor::updateParameters()
 {
+    bitCrusher->setAmount( *bitAmount );
+    bitCrusher->setOutputMix( *bitMix );
+
     int channelAmount = getTotalNumOutputChannels();
 
     for ( int channel = 0; channel < channelAmount; ++channel ) {
         dopplerEffects[ channel ]->setSpeed( channel % 2 == 0 ? *lfoOdd : *lfoEven );
-    }
 
-    bitCrusher->setAmount( *bitAmount );
-    bitCrusher->setOutputMix( *bitMix );
-    
-    reverb->setWet( *reverbMix );
-    reverb->setDry( 1.f - *reverbMix );
-    reverb->setMode( *reverbFreeze >= 0.5f ? 1 : 0 );
+        reverbs[ channel ]->setWet( *reverbMix );
+        reverbs[ channel ]->setDry( 1.f - *reverbMix );
+        reverbs[ channel ]->setMode( *reverbFreeze >= 0.5f ? 1 : 0 );
 
-    // TODO check whether this is expensive and cache the last created coefficients
+        // TODO check whether this is expensive and cache the last created coefficients
 
-    for ( int i = 0; i < channelAmount; ++i ) {
-        lowPassFilters [ i ]->setCoefficients( juce::IIRCoefficients::makeLowPass ( _sampleRate, *lowBand ));
-        bandPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeBandPass( _sampleRate, *midBand, 1.0 ));
-        highPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeHighPass( _sampleRate, *hiBand ));
+        lowPassFilters [ channel ]->setCoefficients( juce::IIRCoefficients::makeLowPass ( _sampleRate, *lowBand ));
+        bandPassFilters[ channel ]->setCoefficients( juce::IIRCoefficients::makeBandPass( _sampleRate, *midBand, 1.0 ));
+        highPassFilters[ channel ]->setCoefficients( juce::IIRCoefficients::makeHighPass( _sampleRate, *hiBand ));
     }
 }
 
@@ -187,9 +185,9 @@ void AudioPluginAudioProcessor::prepareToPlay( double sampleRate, int samplesPer
         highPassFilters[ i ]->setCoefficients( juce::IIRCoefficients::makeHighPass( sampleRate, Parameters::Config::HI_BAND_DEF ));
 
         dopplerEffects.add( new DopplerEffect(( float ) sampleRate, samplesPerBlock ));
+        reverbs.add( new Reverb( sampleRate, Parameters::Config::REVERB_MIX_DEF, Parameters::Config::REVERB_SIZE_DEF ));
     }
     bitCrusher = new BitCrusher( Parameters::Config::BITCRUSHER_AMT_DEF, 1.f, Parameters::Config::BITCRUSHER_WET_DEF );
-    reverb     = new Reverb( sampleRate, Parameters::Config::REVERB_MIX_DEF, Parameters::Config::REVERB_SIZE_DEF );
     
     // align values with model
     updateParameters();
@@ -202,15 +200,11 @@ void AudioPluginAudioProcessor::releaseResources()
     highPassFilters.clear();
 
     dopplerEffects.clear();
+    reverbs.clear();
 
     if ( bitCrusher != nullptr ) {
         delete bitCrusher;
         bitCrusher = nullptr;
-    }
-
-    if ( reverb != nullptr ) {
-        delete reverb;
-        reverb = nullptr;
     }
 }
 
@@ -219,9 +213,19 @@ void AudioPluginAudioProcessor::releaseResources()
 void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages )
 {
     juce::ignoreUnused( midiMessages );
-
     juce::ScopedNoDenormals noDenormals;
 
+    auto currentPosition = getPlayHead()->getPosition();
+
+    if ( currentPosition.hasValue()) {
+        bool wasPlaying = isPlaying;
+        isPlaying = currentPosition->getIsPlaying();
+
+        if ( !wasPlaying && isPlaying ) {
+            resetOscillators();
+        }
+    }
+  
     int channelAmount = buffer.getNumChannels();
     int bufferSize    = buffer.getNumSamples();
 
@@ -244,7 +248,7 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
 
         bitCrusher->apply( lowBuffer, channel );
         dopplerEffects[ channel ]->apply( midBuffer, channel );
-        reverb->apply( hiBuffer, channel );
+        reverbs[ channel ]->apply( hiBuffer, channel );
 
         // apply the filtering
 
@@ -290,6 +294,17 @@ void AudioPluginAudioProcessor::setStateInformation( const void* data, int sizeI
     juce::ValueTree tree = juce::ValueTree::readFromData( data, static_cast<unsigned long>( sizeInBytes ));
     if ( tree.isValid()) {
         parameters.state = tree;
+    }
+}
+
+/* runtime state */
+
+void AudioPluginAudioProcessor::resetOscillators()
+{
+    int channelAmount = getTotalNumOutputChannels();
+
+    for ( int channel = 0; channel < channelAmount; ++channel ) {
+        dopplerEffects[ channel ]->resetOscillators();
     }
 }
 

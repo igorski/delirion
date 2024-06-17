@@ -30,6 +30,7 @@ class DopplerEffect
         ~DopplerEffect();
 
         void setSpeed( float value );
+        void resetOscillators();
 
         // applies the Doppler effect onto the provided buffer at provided channel
         // (Doppler effect applies onto individual (mono) channels, not groups)

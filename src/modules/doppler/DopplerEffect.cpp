@@ -44,6 +44,11 @@ void DopplerEffect::setSpeed( float value )
     lfo->setRate( value );
 }
 
+void DopplerEffect::resetOscillators()
+{
+    lfo->setAccumulator( 0.f );
+}
+
 void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
 {
     if ( lfo->getRate() == 0.f ) {
