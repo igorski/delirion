@@ -1,5 +1,4 @@
-#ifndef __DEBUG_H_INCLUDED__
-#define __DEBUG_H_INCLUDED__
+#pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -35,5 +34,3 @@ class Debug
     private:
         juce::File logFile;
 };
-
-#endif
