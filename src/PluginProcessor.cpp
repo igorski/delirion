@@ -248,7 +248,7 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
 
         bitCrusher->apply( lowBuffer, channel );
         dopplerEffects[ channel ]->apply( midBuffer, channel );
-        reverbs[ channel ]->apply( hiBuffer, channel );
+        reverbs[ channel ]->apply( midBuffer, channel );
 
         // apply the filtering
 

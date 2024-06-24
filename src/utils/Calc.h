@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Igor Zinken https://www.igorski.nl
+ * Copyright (c) 2024 Igor Zinken https://www.igorski.nl
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,51 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "LFO.h"
+#pragma once
 
-LFO::LFO( float sampleRate )
+namespace Calc
 {
-    _sampleRate = sampleRate;
-    _depth      = 1.f;
-    _phase      = 0.f;
-
-    setRate( MIN_LFO_RATE );
-}
-
-LFO::~LFO()
-{
-
-}
-
-/* public methods */
-
-float LFO::getRate()
-{
-    return _rate;
-}
-
-void LFO::setRate( float value )
-{
-    _rate = value;
-    _phaseIncrement = _rate / _sampleRate;
-}
-
-float LFO::getDepth()
-{
-    return _depth;
-}
-
-void LFO::setDepth( float value )
-{
-    _depth = value;
-}
-
-float LFO::getPhase()
-{
-    return _phase;
-}
-
-void LFO::setPhase( float value )
-{
-    _phase = value;
+    /**
+     * convert given value in seconds to the appropriate
+     * value in samples (at the provided sampling rate)
+     */
+    inline int secondsToBuffer( float seconds, float sampleRate )
+    {
+        return static_cast<int>( seconds * sampleRate );
+    }
 }

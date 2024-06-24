@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Igor Zinken https://www.igorski.nl
+ * Copyright (c) 2013-2024 Igor Zinken https://www.igorski.nl
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,51 +16,50 @@
  */
 #pragma once
 
-// sine waveform used for the oscillator
-static const int TABLE_SIZE = 128;
-static const float TABLE[ TABLE_SIZE ] = { 0.f, 0.0490677f, 0.0980171f, 0.14673f, 0.19509f, 0.24298f, 0.290285f, 0.33689f, 0.382683f, 0.427555f, 0.471397f, 0.514103f, 0.55557f, 0.595699f, 0.634393f, 0.671559f, 0.707107f, 0.740951f, 0.77301f, 0.803208f, 0.83147f, 0.857729f, 0.881921f, 0.903989f, 0.92388f, 0.941544f, 0.95694f, 0.970031f, 0.980785f, 0.989177f, 0.995185f, 0.998795f, 1.f, 0.998795f, 0.995185f, 0.989177f, 0.980785f, 0.970031f, 0.95694f, 0.941544f, 0.92388f, 0.903989f, 0.881921f, 0.857729f, 0.83147f, 0.803208f, 0.77301f, 0.740951f, 0.707107f, 0.671559f, 0.634393f, 0.595699f, 0.55557f, 0.514103f, 0.471397f, 0.427555f, 0.382683f, 0.33689f, 0.290285f, 0.24298f, 0.19509f, 0.14673f, 0.0980171f, 0.0490677f, 1.22465e-16f, -0.0490677f, -0.0980171f, -0.14673f, -0.19509f, -0.24298f, -0.290285f, -0.33689f, -0.382683f, -0.427555f, -0.471397f, -0.514103f, -0.55557f, -0.595699f, -0.634393f, -0.671559f, -0.707107f, -0.740951f, -0.77301f, -0.803208f, -0.83147f, -0.857729f, -0.881921f, -0.903989f, -0.92388f, -0.941544f, -0.95694f, -0.970031f, -0.980785f, -0.989177f, -0.995185f, -0.998795f, -1.f, -0.998795f, -0.995185f, -0.989177f, -0.980785f, -0.970031f, -0.95694f, -0.941544f, -0.92388f, -0.903989f, -0.881921f, -0.857729f, -0.83147f, -0.803208f, -0.77301f, -0.740951f, -0.707107f, -0.671559f, -0.634393f, -0.595699f, -0.55557f, -0.514103f, -0.471397f, -0.427555f, -0.382683f, -0.33689f, -0.290285f, -0.24298f, -0.19509f, -0.14673f, -0.0980171f, -0.0490677f };
+#include <juce_audio_processors/juce_audio_processors.h>
 
 class LFO
 {
-    static const float MAX_LFO_RATE() { return 10.f; }
-    static const float MIN_LFO_RATE() { return .1f; }
-
     public:
+        // LFO range in Hz
+        static constexpr float MAX_LFO_RATE = 10.f;
+        static constexpr float MIN_LFO_RATE = 0.1f;
+
         LFO( float sampleRate );
         ~LFO();
 
         float getRate();
         void setRate( float value );
 
-        // accumulators are used to retrieve a sample from the wave table
+        float getDepth();
+        void setDepth( float value );
 
-        float getAccumulator();
-        void setAccumulator( float offset );
+        float getPhase();
+        void setPhase( float value );
 
         /**
          * retrieve a value from the wave table for the current
-         * accumulator position, this method also increments
-         * the accumulator and keeps it within bounds
+         * phase position, this method also increments
+         * the phase and keeps it within bounds
          */
         inline float peek()
         {
-            // the wave table offset to read from
-            int readOffset = ( _accumulator == 0.f ) ? 0 : ( int ) ( _accumulator / SR_OVER_LENGTH );
+            float lfoValue = std::sin( TWO_PI * _phase ) * _depth;
+            
+            _phase += _phaseIncrement;
 
-            // increment the accumulators read offset
-            _accumulator += _rate;
-
-            // keep the accumulator within the bounds of the sample frequency
-            if ( _accumulator > _sampleRate ) {
-                _accumulator -= _sampleRate;
+            if ( _phase >= 1.0f ) {
+                _phase -= 1.0f;
             }
-            // return the sample present at the calculated offset within the table
-            return TABLE[ readOffset ];
+            return lfoValue;
         }
 
     private:
+        const float TWO_PI  = 2.f * juce::MathConstants<float>::pi;
+
         float _sampleRate;
         float _rate;
-        float _accumulator;   // is read offset in wave table buffer
-        float SR_OVER_LENGTH;
+        float _depth;
+        float _phase;
+        float _phaseIncrement;
 };

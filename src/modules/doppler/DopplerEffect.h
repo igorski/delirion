@@ -19,11 +19,17 @@
 #include <cmath>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "../oscillator/LFO.h"
+#include "../../utils/CubicInterpolator.h"
 
 class DopplerEffect
 {
-    const float TWO_PI = 2.f * juce::MathConstants<float>::pi;
-    const float SPEED_OF_SOUND = 343.0f; // in m/s
+    const float MIN_DOPPLER_RATE      = 0.5f;
+    const float MAX_DOPPLER_RATE      = 2.0f;
+    const float MIN_OBSERVER_DISTANCE = 1.f;
+    const float MAX_OBSERVER_DISTANCE = 10.f;
+    const float SPEED_OF_SOUND        = 343.0f; // in m/s
+    const float TWO_PI                = 2.f * juce::MathConstants<float>::pi;
+    const float DC_OFFSET_FILTER      = 0.995f;
 
     public:
         DopplerEffect( float sampleRate, int bufferSize );
@@ -38,22 +44,22 @@ class DopplerEffect
         void apply( juce::AudioBuffer<float>& buffer, int channel );
 
     private:
+        CubicInterpolator interpolator;
         LFO* lfo;
-        float _sampleRate;
-
-        int recordInput( juce::AudioBuffer<float>& buffer, int channel );
+       
+        void recordInput( juce::AudioBuffer<float>& buffer, int channel );
+        void updateReadPosition( int bufferSize );
 
         juce::AudioBuffer<float> recordBuffer;
+        float fRecordBufferSize;
         int recordBufferSize;
+        int readPosition;
         int writePosition;
 
-        inline float cubicInterpolate( float y0, float y1, float y2, float y3, float frac )
-        {
-            float a = ( -0.5f * y0 ) + ( 1.5f * y1 ) - ( 1.5f * y2 ) + ( 0.5f * y3 );
-            float b = y0 - ( 2.5f * y1 ) + ( 2.0f * y2 ) - ( 0.5f * y3 );
-            float c = ( -0.5f * y0 ) + ( 0.5f * y2 );
-            float d = y1;
+        bool readFromRecordBuffer = false;
+        int totalRecordedSamples  = 0;
+        int minRequiredSamples;
 
-            return a * frac * frac * frac + b * frac * frac + c * frac + d;
-        }
+        float previousSampleValue   = 0.0f;
+        float previousFilteredValue = 0.0f;
 };
