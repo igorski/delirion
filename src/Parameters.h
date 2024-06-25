@@ -39,6 +39,9 @@ namespace Parameters {
     }
 
     namespace Config {
+        static float LFO_REC_DURATION_MIN = 0.01161f;
+        static float LFO_REC_DURATION_MAX = 0.2322f;
+        
         static float BITCRUSHER_AMT_DEF = 1.f;
         static float BITCRUSHER_WET_DEF = 0.5f;
 

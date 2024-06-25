@@ -26,4 +26,9 @@ namespace Calc
     {
         return static_cast<int>( seconds * sampleRate );
     }
+
+    inline float bufferToSeconds( int bufferSize, float sampleRate )
+    {
+        return static_cast<float>( bufferSize ) / sampleRate;
+    }
 }

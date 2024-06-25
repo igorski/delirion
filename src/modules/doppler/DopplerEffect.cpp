@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "DopplerEffect.h"
+#include "../../Parameters.h"
 #include "../../utils/Calc.h"
 
 /* constructor/destructor */
@@ -24,14 +25,15 @@ DopplerEffect::DopplerEffect( float sampleRate, int bufferSize )
     lfo = new LFO( sampleRate );
     lfo->setDepth(( 1.f / MAX_OBSERVER_DISTANCE ) * 0.025f );
 
-// @todo make scaleable 2 * bufferSize (of 256) sounds nice, calc this and grab it as minimum
-    int idealRecordSize = 40 * bufferSize;//Calc::secondsToBuffer(( LFO::MAX_LFO_RATE * 4 ) / 1000, sampleRate );
-    recordBufferSize    = idealRecordSize + idealRecordSize % bufferSize; // make multiple of bufferSize
-    fRecordBufferSize   = static_cast<float>( recordBufferSize );
+    _sampleRate = sampleRate;
+    _bufferSize = bufferSize;
+
+    setRecordingLength( 1.f );
+    maxRecordBufferSize = recordBufferSize; // calculated by setRecordingLength()
 
     minRequiredSamples = bufferSize * static_cast<int>( ceil( MAX_DOPPLER_RATE ));
 
-    recordBuffer.setSize( 1, recordBufferSize );
+    recordBuffer.setSize( 1, maxRecordBufferSize );
     recordBuffer.clear(); // fills buffer with silence
 
     readPosition  = 0;
@@ -50,6 +52,32 @@ DopplerEffect::~DopplerEffect()
 void DopplerEffect::setSpeed( float value )
 {
     lfo->setRate( value );
+}
+
+void DopplerEffect::setRecordingLength( float normalizedRange )
+{
+    int durationInSamples = Calc::secondsToBuffer(
+        juce::jmap( normalizedRange, 0.f, 1.f, Parameters::Config::LFO_REC_DURATION_MIN, Parameters::Config::LFO_REC_DURATION_MAX ),
+        _sampleRate
+    );
+
+    if ( durationInSamples < 0 ) {
+        return;
+    }
+
+    if ( maxRecordBufferSize > 0 && durationInSamples > maxRecordBufferSize ) {
+        durationInSamples = maxRecordBufferSize;
+    }
+
+    recordBufferSize  = durationInSamples + durationInSamples % _bufferSize; // make multiple of block bufferSize
+    fRecordBufferSize = static_cast<float>( recordBufferSize );
+
+    // TODO check this logic if we are going to make this parameter automatable, this crackles like crazy
+    // when lowering the duration from the max 1.f value (readPosition probably needs attention too...)
+
+    if ( writePosition > recordBufferSize ) {
+        writePosition = 0;
+    }
 }
 
 void DopplerEffect::resetOscillators()

@@ -19,7 +19,7 @@
 #include <cmath>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "../oscillator/LFO.h"
-#include "../../utils/CubicInterpolator.h"
+// #include "../../utils/CubicInterpolator.h"
 
 class DopplerEffect
 {
@@ -36,6 +36,7 @@ class DopplerEffect
         ~DopplerEffect();
 
         void setSpeed( float value );
+        void setRecordingLength( float normalizedRange );
         void resetOscillators();
 
         // applies the Doppler effect onto the provided buffer at provided channel
@@ -44,7 +45,7 @@ class DopplerEffect
         void apply( juce::AudioBuffer<float>& buffer, int channel );
 
     private:
-        CubicInterpolator interpolator;
+        // CubicInterpolator interpolator;
         LFO* lfo;
        
         void recordInput( juce::AudioBuffer<float>& buffer, int channel );
@@ -53,6 +54,7 @@ class DopplerEffect
         juce::AudioBuffer<float> recordBuffer;
         float fRecordBufferSize;
         int recordBufferSize;
+        int maxRecordBufferSize = 0;
         int readPosition;
         int writePosition;
 
@@ -62,4 +64,7 @@ class DopplerEffect
 
         float previousSampleValue   = 0.0f;
         float previousFilteredValue = 0.0f;
+
+        float _sampleRate;
+        int   _bufferSize;
 };

@@ -70,7 +70,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LFO_ODD, "LFO odd",  0.f, 1.f, 0.01f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LFO_EVEN, "LFO even", 0.f, 1.f, 0.05f ));
-
+            
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_AMOUNT, "Crush amount", 0.f, 1.f, Parameters::Config::BITCRUSHER_AMT_DEF ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_MIX, "Bit mix", 0.f, 1.f, Parameters::Config::BITCRUSHER_WET_DEF ));
             

@@ -22,21 +22,21 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor( AudioPluginAudioProcessor& p, juce::AudioProcessorValueTreeState& state )
     : AudioProcessorEditor( &p ), processorRef( p ), parameters( state )
 {
-    lfoOddAttachment  = createControl( Parameters::LFO_ODD,  lfoOddControl );
-    lfoEvenAttachment = createControl( Parameters::LFO_EVEN, lfoEvenControl );
+    createControl( Parameters::LFO_ODD,  lfoOddControl );
+    createControl( Parameters::LFO_EVEN, lfoEvenControl );
 
-    bitAmountAttachment = createControl( Parameters::BIT_AMOUNT, bitAmountControl );
-    bitMixAttachment    = createControl( Parameters::BIT_MIX,    bitMixControl );
+    createControl( Parameters::BIT_AMOUNT, bitAmountControl );
+    createControl( Parameters::BIT_MIX,    bitMixControl );
 
-    lowBandAttachment = createControl( Parameters::LOW_BAND, lowBandControl );
+    createControl( Parameters::LOW_BAND, lowBandControl );
     lowBandControl.setRange( Parameters::Ranges::LOW_BAND_MIN, Parameters::Ranges::LOW_BAND_MAX, 1.f );
-    midBandAttachment = createControl( Parameters::MID_BAND, midBandControl );
+    createControl( Parameters::MID_BAND, midBandControl );
     midBandControl.setRange( Parameters::Ranges::MID_BAND_MIN, Parameters::Ranges::MID_BAND_MAX, 1.f );
-    hiBandAttachment  = createControl( Parameters::HI_BAND,  hiBandControl );
+    createControl( Parameters::HI_BAND,  hiBandControl );
     hiBandControl.setRange( Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, 1.f );
 
-    reverbMixAttachment    = createControl( Parameters::REVERB_MIX,    reverbMixControl );
-    reverbFreezeAttachment = createControl( Parameters::REVERB_FREEZE, reverbFreezeControl );
+    createControl( Parameters::REVERB_MIX,    reverbMixControl );
+    createControl( Parameters::REVERB_FREEZE, reverbFreezeControl );
 
     setSize( 400, 400 );
 }
