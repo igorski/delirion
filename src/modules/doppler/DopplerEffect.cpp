@@ -20,12 +20,12 @@
 
 /* constructor/destructor */
 
-DopplerEffect::DopplerEffect( float sampleRate, int bufferSize )
+DopplerEffect::DopplerEffect( double sampleRate, int bufferSize )
 {
     lfo = new LFO( sampleRate );
     lfo->setDepth(( 1.f / MAX_OBSERVER_DISTANCE ) * 0.025f );
 
-    _sampleRate = sampleRate;
+    _sampleRate = static_cast<float>( sampleRate );
     _bufferSize = bufferSize;
 
     setRecordingLength( 1.f );
@@ -42,9 +42,10 @@ DopplerEffect::DopplerEffect( float sampleRate, int bufferSize )
 
 DopplerEffect::~DopplerEffect()
 {
-    delete lfo;
-
-    recordBuffer.clear();
+    if ( lfo != nullptr ) {
+        delete lfo;
+        lfo = nullptr;
+    }
 }
 
 /* public methods */

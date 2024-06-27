@@ -19,8 +19,12 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 namespace Parameters {
-    static juce::String LFO_ODD         = "lfoOdd";
-    static juce::String LFO_EVEN        = "lfoEven";
+    static juce::String LOW_LFO_ODD     = "lowLfoOdd";
+    static juce::String LOW_LFO_EVEN    = "lowLfoEven";
+    static juce::String MID_LFO_ODD     = "midLfoOdd";
+    static juce::String MID_LFO_EVEN    = "midLfoEven";
+    static juce::String HI_LFO_ODD      = "hiLfoOdd";
+    static juce::String HI_LFO_EVEN     = "hiLfoEven";
     static juce::String BIT_AMOUNT      = "bitAmount";
     static juce::String BIT_MIX         = "bitMix";
     static juce::String LOW_BAND        = "lowBand";

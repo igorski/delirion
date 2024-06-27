@@ -16,9 +16,9 @@
  */
 #include "LFO.h"
 
-LFO::LFO( float sampleRate )
+LFO::LFO( double sampleRate )
 {
-    _sampleRate = sampleRate;
+    _sampleRate = static_cast<float>( sampleRate );
     _depth      = 1.f;
     _phase      = 0.f;
 

@@ -22,23 +22,27 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor( AudioPluginAudioProcessor& p, juce::AudioProcessorValueTreeState& state )
     : AudioProcessorEditor( &p ), processorRef( p ), parameters( state )
 {
-    createControl( Parameters::LFO_ODD,  lfoOddControl );
-    createControl( Parameters::LFO_EVEN, lfoEvenControl );
+    lowLfoOddAtt  = createControl( Parameters::LOW_LFO_ODD,  lowLfoOddControl );
+    lowLfoEvenAtt = createControl( Parameters::LOW_LFO_EVEN, lowLfoEvenControl );
+    midLfoOddAtt  = createControl( Parameters::MID_LFO_ODD,  midLfoOddControl );
+    midLfoEvenAtt = createControl( Parameters::MID_LFO_EVEN, midLfoEvenControl );
+    hiLfoOddAtt   = createControl( Parameters::HI_LFO_ODD,   hiLfoOddControl );
+    hiLfoEvenAtt  = createControl( Parameters::HI_LFO_EVEN,  hiLfoEvenControl );
 
-    createControl( Parameters::BIT_AMOUNT, bitAmountControl );
-    createControl( Parameters::BIT_MIX,    bitMixControl );
+    bitAmountAtt = createControl( Parameters::BIT_AMOUNT, bitAmountControl );
+    bitMixAtt    = createControl( Parameters::BIT_MIX,    bitMixControl );
 
-    createControl( Parameters::LOW_BAND, lowBandControl );
+    lowBandAtt = createControl( Parameters::LOW_BAND, lowBandControl );
     lowBandControl.setRange( Parameters::Ranges::LOW_BAND_MIN, Parameters::Ranges::LOW_BAND_MAX, 1.f );
-    createControl( Parameters::MID_BAND, midBandControl );
+    midBandAtt = createControl( Parameters::MID_BAND, midBandControl );
     midBandControl.setRange( Parameters::Ranges::MID_BAND_MIN, Parameters::Ranges::MID_BAND_MAX, 1.f );
-    createControl( Parameters::HI_BAND,  hiBandControl );
+    hiBandAtt  = createControl( Parameters::HI_BAND,  hiBandControl );
     hiBandControl.setRange( Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, 1.f );
 
-    createControl( Parameters::REVERB_MIX,    reverbMixControl );
-    createControl( Parameters::REVERB_FREEZE, reverbFreezeControl );
+    reverbMixAtt    = createControl( Parameters::REVERB_MIX,    reverbMixControl );
+    reverbFreezeAtt = createControl( Parameters::REVERB_FREEZE, reverbFreezeControl );
 
-    setSize( 400, 400 );
+    setSize( 700, 350 );
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -49,24 +53,33 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 void AudioPluginAudioProcessorEditor::paint( juce::Graphics& g )
 {
     g.fillAll( getLookAndFeel().findColour( juce::ResizableWindow::backgroundColourId ));
-
-    g.setColour( juce::Colours::white );
-    g.setFont( 15.0f );
-    g.drawFittedText( "DOPPLER", getLocalBounds(), juce::Justification::centred, 1 );
 }
 
 void AudioPluginAudioProcessorEditor::resized()
 {
-    lfoOddControl.setBounds ( 50, 50, 100, 100 );
-    lfoEvenControl.setBounds( 150, 50, 100, 100 );
+    int dialRadius  = 100;
+    int dialSpacing = 75;
+    int sectSpacing = 25;
+    int lowSectionX = 10;
+    int midSectionX = lowSectionX + ( dialSpacing * 2 ) + sectSpacing;
+    int hiSectionX  = midSectionX + ( dialSpacing * 2 ) + sectSpacing;
+
+    lowLfoOddControl.setBounds ( lowSectionX, 50, dialRadius, dialRadius );
+    lowLfoEvenControl.setBounds( lowSectionX + dialSpacing, 50, dialRadius, dialRadius );
+    midLfoOddControl.setBounds ( midSectionX, 50, dialRadius, dialRadius );
+    midLfoEvenControl.setBounds( midSectionX + dialSpacing, 50, dialRadius, dialRadius );
+    hiLfoOddControl.setBounds  ( hiSectionX, 50, dialRadius, dialRadius );
+    hiLfoEvenControl.setBounds ( hiSectionX + dialSpacing, 50, dialRadius, dialRadius );
     
-    bitAmountControl.setBounds( 50, 100, 100, 100 );
-    bitMixControl.setBounds( 150, 100, 100, 100 );
+    bitAmountControl.setBounds( 10, 200, dialRadius, dialRadius );
+    bitMixControl.setBounds   ( 10 + dialSpacing, 200, dialRadius, dialRadius );
 
-    lowBandControl.setBounds( 50, 0, 100, 100 );
-    midBandControl.setBounds( 150, 0, 100, 100 );
-    hiBandControl.setBounds( 250, 0, 100, 100 );
+    lowBandControl.setBounds( midSectionX, 200, dialRadius, dialRadius );
+    midBandControl.setBounds( midSectionX + dialSpacing, 200, dialRadius, dialRadius );
+    hiBandControl.setBounds ( midSectionX + dialSpacing * 2, 200, dialRadius, dialRadius );
+    
+    int reverbX = 200 + dialSpacing * 2 + sectSpacing;
 
-    reverbMixControl.setBounds( 50, 200, 100, 100 );
-    reverbFreezeControl.setBounds( 150, 200, 100, 100 );
+    reverbMixControl.setBounds   ( reverbX, 200, dialRadius, dialRadius );
+    reverbFreezeControl.setBounds( reverbX + dialSpacing, 200, dialRadius, dialRadius );
 }

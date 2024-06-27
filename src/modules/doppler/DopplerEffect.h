@@ -32,7 +32,7 @@ class DopplerEffect
     const float DC_OFFSET_FILTER      = 0.995f;
 
     public:
-        DopplerEffect( float sampleRate, int bufferSize );
+        DopplerEffect( double sampleRate, int bufferSize );
         ~DopplerEffect();
 
         void setSpeed( float value );
@@ -46,7 +46,7 @@ class DopplerEffect
 
     private:
         // CubicInterpolator interpolator;
-        LFO* lfo;
+        LFO* lfo = nullptr;
        
         void recordInput( juce::AudioBuffer<float>& buffer, int channel );
         void updateReadPosition( int bufferSize );

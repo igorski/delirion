@@ -25,7 +25,7 @@ class LFO
         static constexpr float MAX_LFO_RATE = 10.f;
         static constexpr float MIN_LFO_RATE = 0.1f;
 
-        LFO( float sampleRate );
+        LFO( double sampleRate );
         ~LFO();
 
         float getRate();
