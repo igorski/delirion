@@ -24,10 +24,13 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor( AudioPluginAud
 {
     lowLfoOddAtt  = createControl( Parameters::LOW_LFO_ODD,  lowLfoOddControl );
     lowLfoEvenAtt = createControl( Parameters::LOW_LFO_EVEN, lowLfoEvenControl );
+    lowLfoLinkAtt = createControl( Parameters::LOW_LFO_LINK, lowLfoLinkControl );
     midLfoOddAtt  = createControl( Parameters::MID_LFO_ODD,  midLfoOddControl );
     midLfoEvenAtt = createControl( Parameters::MID_LFO_EVEN, midLfoEvenControl );
+    midLfoLinkAtt = createControl( Parameters::MID_LFO_LINK, midLfoLinkControl );
     hiLfoOddAtt   = createControl( Parameters::HI_LFO_ODD,   hiLfoOddControl );
     hiLfoEvenAtt  = createControl( Parameters::HI_LFO_EVEN,  hiLfoEvenControl );
+    hiLfoLinkAtt  = createControl( Parameters::HI_LFO_LINK,  hiLfoLinkControl );
 
     bitAmountAtt = createControl( Parameters::BIT_AMOUNT, bitAmountControl );
     bitMixAtt    = createControl( Parameters::BIT_MIX,    bitMixControl );
@@ -66,10 +69,13 @@ void AudioPluginAudioProcessorEditor::resized()
 
     lowLfoOddControl.setBounds ( lowSectionX, 50, dialRadius, dialRadius );
     lowLfoEvenControl.setBounds( lowSectionX + dialSpacing, 50, dialRadius, dialRadius );
+    lowLfoLinkControl.setBounds( lowSectionX + dialSpacing, 125, dialRadius, dialRadius );
     midLfoOddControl.setBounds ( midSectionX, 50, dialRadius, dialRadius );
     midLfoEvenControl.setBounds( midSectionX + dialSpacing, 50, dialRadius, dialRadius );
+    midLfoLinkControl.setBounds( midSectionX + dialSpacing, 125, dialRadius, dialRadius );
     hiLfoOddControl.setBounds  ( hiSectionX, 50, dialRadius, dialRadius );
     hiLfoEvenControl.setBounds ( hiSectionX + dialSpacing, 50, dialRadius, dialRadius );
+    hiLfoLinkControl.setBounds ( hiSectionX + dialSpacing, 125, dialRadius, dialRadius );
     
     bitAmountControl.setBounds( 10, 200, dialRadius, dialRadius );
     bitMixControl.setBounds   ( 10 + dialSpacing, 200, dialRadius, dialRadius );

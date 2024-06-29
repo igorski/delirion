@@ -70,10 +70,13 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LOW_LFO_ODD,  "Low LFO odd",  0.f, 1.f, 0.f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LOW_LFO_EVEN, "Low LFO even", 0.f, 1.f, 0.f ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LOW_LFO_LINK, "Low LFO link",  0.f, 1.f, 1.f )); 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::MID_LFO_ODD,  "Mid LFO odd",  0.f, 1.f, 0.01f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::MID_LFO_EVEN, "Mid LFO even", 0.f, 1.f, 0.05f ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::MID_LFO_LINK, "Mid LFO link",  0.f, 1.f, 1.f )); 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_LFO_ODD,   "Hi LFO odd",   0.f, 1.f, 0.f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_LFO_EVEN,  "Hi LFO even",  0.f, 1.f, 0.f ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_LFO_LINK,  "Hi LFO link",  0.f, 1.f, 1.f )); 
             
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_AMOUNT, "Crush amount", 0.f, 1.f, Parameters::Config::BITCRUSHER_AMT_DEF ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_MIX, "Bit mix", 0.f, 1.f, Parameters::Config::BITCRUSHER_WET_DEF ));
@@ -126,10 +129,13 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
         std::atomic<float>* lowLfoOdd;
         std::atomic<float>* lowLfoEven;
+        std::atomic<float>* lowLfoLink;
         std::atomic<float>* midLfoOdd;
         std::atomic<float>* midLfoEven;
+        std::atomic<float>* midLfoLink;
         std::atomic<float>* hiLfoOdd;
         std::atomic<float>* hiLfoEven;
+        std::atomic<float>* hiLfoLink;
         std::atomic<float>* bitAmount;
         std::atomic<float>* bitMix;
         std::atomic<float>* lowBand;

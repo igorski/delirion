@@ -39,10 +39,13 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
 
         juce::Slider lowLfoOddControl;
         juce::Slider lowLfoEvenControl;
+        juce::ToggleButton lowLfoLinkControl;
         juce::Slider midLfoOddControl;
         juce::Slider midLfoEvenControl;
+        juce::ToggleButton midLfoLinkControl;
         juce::Slider hiLfoOddControl;
         juce::Slider hiLfoEvenControl;
+        juce::ToggleButton hiLfoLinkControl;
 
         juce::Slider bitAmountControl;
         juce::Slider bitMixControl;
@@ -56,15 +59,21 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
 
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowLfoOddAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowLfoEvenAtt;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> lowLfoLinkAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> midLfoOddAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> midLfoEvenAtt;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> midLfoLinkAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hiLfoOddAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hiLfoEvenAtt;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> hiLfoLinkAtt;
+
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitAmountAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitMixAtt;
+        
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowBandAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> midBandAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hiBandAtt;
+        
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> reverbMixAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> reverbFreezeAtt;
     

@@ -33,10 +33,13 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
 
     lowLfoOdd  = parameters.getRawParameterValue( Parameters::LOW_LFO_ODD );
     lowLfoEven = parameters.getRawParameterValue( Parameters::LOW_LFO_EVEN );
+    lowLfoLink = parameters.getRawParameterValue( Parameters::LOW_LFO_LINK );
     midLfoOdd  = parameters.getRawParameterValue( Parameters::MID_LFO_ODD );
     midLfoEven = parameters.getRawParameterValue( Parameters::MID_LFO_EVEN );
+    midLfoLink = parameters.getRawParameterValue( Parameters::MID_LFO_LINK );
     hiLfoOdd   = parameters.getRawParameterValue( Parameters::HI_LFO_ODD );
     hiLfoEven  = parameters.getRawParameterValue( Parameters::HI_LFO_EVEN );
+    hiLfoLink  = parameters.getRawParameterValue( Parameters::HI_LFO_LINK );
 
     bitAmount = parameters.getRawParameterValue( Parameters::BIT_AMOUNT );
     bitMix    = parameters.getRawParameterValue( Parameters::BIT_MIX );
@@ -152,14 +155,21 @@ void AudioPluginAudioProcessor::updateParameters()
 
     int channelAmount = getTotalNumOutputChannels();
 
+    bool linkLow = *lowLfoLink >= 0.5f;
+    bool linkMid = *midLfoLink >= 0.5f;
+    bool linkHi  = *hiLfoLink  >= 0.5f;
+    bool freeze  = *reverbFreeze >= 0.5f;
+
     for ( int channel = 0; channel < channelAmount; ++channel ) {
-        lowDopplerEffects[ channel ]->setSpeed( channel % 2 == 0 ? *lowLfoOdd : *lowLfoEven );
-        midDopplerEffects[ channel ]->setSpeed( channel % 2 == 0 ? *midLfoOdd : *midLfoEven );
-        hiDopplerEffects[  channel ]->setSpeed( channel % 2 == 0 ? *hiLfoOdd  : *hiLfoEven );
+        bool isOddChannel = channel % 2 == 0;
+
+        lowDopplerEffects[ channel ]->setSpeed( linkLow || isOddChannel ? *lowLfoOdd : *lowLfoEven );
+        midDopplerEffects[ channel ]->setSpeed( linkMid || isOddChannel ? *midLfoOdd : *midLfoEven );
+        hiDopplerEffects[  channel ]->setSpeed( linkHi  || isOddChannel ? *hiLfoOdd  : *hiLfoEven );
 
         reverbs[ channel ]->setWet( *reverbMix );
         reverbs[ channel ]->setDry( 1.f - *reverbMix );
-        reverbs[ channel ]->setMode( *reverbFreeze >= 0.5f ? 1 : 0 );
+        reverbs[ channel ]->setMode( freeze ? 1 : 0 );
 
         // TODO check whether this is expensive and cache the last created coefficients
 
