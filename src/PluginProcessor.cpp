@@ -165,7 +165,7 @@ void AudioPluginAudioProcessor::updateParameters()
 
         lowDopplerEffects[ channel ]->setSpeed( linkLow || isOddChannel ? *lowLfoOdd : *lowLfoEven );
         midDopplerEffects[ channel ]->setSpeed( linkMid || isOddChannel ? *midLfoOdd : *midLfoEven );
-        hiDopplerEffects[  channel ]->setSpeed( linkHi  || isOddChannel ? *hiLfoOdd  : *hiLfoEven );
+        hiDopplerEffects [ channel ]->setSpeed( linkHi  || isOddChannel ? *hiLfoOdd  : *hiLfoEven );
 
         reverbs[ channel ]->setWet( *reverbMix );
         reverbs[ channel ]->setDry( 1.f - *reverbMix );
@@ -204,7 +204,7 @@ void AudioPluginAudioProcessor::prepareToPlay( double sampleRate, int samplesPer
         midDopplerEffects.add( new DopplerEffect( sampleRate, samplesPerBlock ));
         hiDopplerEffects.add ( new DopplerEffect( sampleRate, samplesPerBlock ));
 
-        reverbs.add( new Reverb( sampleRate, Parameters::Config::REVERB_MIX_DEF, Parameters::Config::REVERB_SIZE_DEF ));
+        reverbs.add( new Reverb( sampleRate, Parameters::Config::REVERB_WIDTH_DEF, Parameters::Config::REVERB_SIZE_DEF ));
     }
     bitCrusher = new BitCrusher( Parameters::Config::BITCRUSHER_AMT_DEF, 1.f, Parameters::Config::BITCRUSHER_WET_DEF );
     
@@ -275,7 +275,7 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
         hiDopplerEffects [ channel ]->apply( hiBuffer,  channel );
 
         reverbs[ channel ]->apply( midBuffer, channel );
-
+        
         // apply the filtering
 
         lowPassFilters [ channel ]->processSamples( lowBuffer.getWritePointer( channel ), bufferSize );

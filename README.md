@@ -2,6 +2,12 @@
 
 Doppler was built using the [JUCE framework](https://github.com/juce-framework/JUCE).
 
+## The [Issue Tracker](https://github.com/igorski/doppler/issues) is your point of contact
+
+Bug reports, feature requests, questions and discussions are welcome on the GitHub Issue Tracker, please do not send e-mails through the development website. However, please search before posting to avoid duplicates, and limit to one issue per post.
+
+Please vote on feature requests by using the Thumbs Up/Down reaction on the first post.
+
 ## Setup
 
 You will need to have CMake and a suitable C compiler installed. JUCE* is a submodule of this repository so

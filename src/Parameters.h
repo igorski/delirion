@@ -46,8 +46,16 @@ namespace Parameters {
     }
 
     namespace Config {
+
+        // LFO duration is defined in seconds
+
         static float LFO_REC_DURATION_MIN = 0.01161f;
         static float LFO_REC_DURATION_MAX = 0.2322f;
+
+        // LFO speed is defined in Hz
+
+        static float LFO_MIN_RATE = 0.1f;
+        static float LFO_MAX_RATE = 1.f;
         
         static float BITCRUSHER_AMT_DEF = 1.f;
         static float BITCRUSHER_WET_DEF = 0.5f;
@@ -56,8 +64,9 @@ namespace Parameters {
         static float MID_BAND_DEF = 1000.f;
         static float HI_BAND_DEF  = 5000.f;
 
-        static float REVERB_MIX_DEF  = 1.f;
-        static float REVERB_SIZE_DEF = 1.f;
+        static float REVERB_WIDTH_DEF  = 0.15f;
+        static float REVERB_SIZE_DEF   = 1.f;
+        static float REVERB_MIX_DEF    = 1.f;
         static const int NUM_COMBS     = 8;
         static const int NUM_ALLPASSES = 4;
         static const int COMB_TUNINGS[ NUM_COMBS ] = { 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 };

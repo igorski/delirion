@@ -21,10 +21,6 @@
 class LFO
 {
     public:
-        // LFO range in Hz
-        static constexpr float MAX_LFO_RATE = 10.f;
-        static constexpr float MIN_LFO_RATE = 0.1f;
-
         LFO( double sampleRate );
         ~LFO();
 
@@ -44,6 +40,8 @@ class LFO
          */
         inline float peek()
         {
+            _phaseIncrement += _smoothingFactor * ( _targetIncrement - _phaseIncrement );
+
             float lfoValue = std::sin( TWO_PI * _phase ) * _depth;
             
             _phase += _phaseIncrement;
@@ -61,5 +59,7 @@ class LFO
         float _rate;
         float _depth;
         float _phase;
-        float _phaseIncrement;
+        float _phaseIncrement = 0.f;
+        float _targetIncrement = 0.f;
+        float _smoothingFactor = 0.01f;
 };

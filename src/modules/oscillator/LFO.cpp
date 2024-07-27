@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "LFO.h"
+#include "../../Parameters.h"
 
 LFO::LFO( double sampleRate )
 {
@@ -22,7 +23,7 @@ LFO::LFO( double sampleRate )
     _depth      = 1.f;
     _phase      = 0.f;
 
-    setRate( MIN_LFO_RATE );
+    setRate( Parameters::Config::LFO_MIN_RATE );
 }
 
 LFO::~LFO()
@@ -40,7 +41,7 @@ float LFO::getRate()
 void LFO::setRate( float value )
 {
     _rate = value;
-    _phaseIncrement = _rate / _sampleRate;
+    _targetIncrement = _rate / _sampleRate;
 }
 
 float LFO::getDepth()
