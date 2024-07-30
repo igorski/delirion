@@ -48,7 +48,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
     midBand = parameters.getRawParameterValue( Parameters::MID_BAND );
     hiBand  = parameters.getRawParameterValue( Parameters::HI_BAND );
 
-    reverbMix    = parameters.getRawParameterValue( Parameters::REVERB_MIX );
+    wetDryMix = parameters.getRawParameterValue( Parameters::WET_DRY_MIX );
+
     reverbFreeze = parameters.getRawParameterValue( Parameters::REVERB_FREEZE );
 }
 
@@ -167,8 +168,8 @@ void AudioPluginAudioProcessor::updateParameters()
         midDopplerEffects[ channel ]->setSpeed( linkMid || isOddChannel ? *midLfoOdd : *midLfoEven );
         hiDopplerEffects [ channel ]->setSpeed( linkHi  || isOddChannel ? *hiLfoOdd  : *hiLfoEven );
 
-        reverbs[ channel ]->setWet( *reverbMix );
-        reverbs[ channel ]->setDry( 1.f - *reverbMix );
+        reverbs[ channel ]->setWet( freeze ? 1.f : 0.f );
+        reverbs[ channel ]->setDry( freeze ? 0.f : 1.f  );
         reverbs[ channel ]->setMode( freeze ? 1 : 0 );
 
         // TODO check whether this is expensive and cache the last created coefficients
@@ -251,6 +252,9 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
     int channelAmount = buffer.getNumChannels();
     int bufferSize    = buffer.getNumSamples();
 
+    float dryMix = 1.f - *wetDryMix;
+    float wetMix = *wetDryMix;
+
     // Create temporary buffers for each band
     juce::AudioBuffer<float> lowBuffer( channelAmount, bufferSize );
     juce::AudioBuffer<float> midBuffer( channelAmount, bufferSize );
@@ -266,13 +270,13 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
         midBuffer.copyFrom ( channel, 0, buffer, channel, 0, bufferSize );
         hiBuffer.copyFrom( channel, 0, buffer, channel, 0, bufferSize );
 
-        // apply the effects
-
-        bitCrusher->apply( lowBuffer, channel );
-
         lowDopplerEffects[ channel ]->apply( lowBuffer, channel );
         midDopplerEffects[ channel ]->apply( midBuffer, channel );
         hiDopplerEffects [ channel ]->apply( hiBuffer,  channel );
+
+        // apply the effects
+
+        bitCrusher->apply( lowBuffer, channel );
 
         reverbs[ channel ]->apply( midBuffer, channel );
         
@@ -285,11 +289,15 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
         // write the effected buffer into the output
     
         for ( int i = 0; i < bufferSize; ++i ) {
+            auto input = buffer.getSample( channel, i ) * dryMix;
+
             buffer.setSample(
                 channel, i,
-                lowBuffer.getSample( channel, i ) +
-                midBuffer.getSample( channel, i ) +
-                hiBuffer.getSample ( channel, i )
+                input + (
+                    lowBuffer.getSample( channel, i ) +
+                    midBuffer.getSample( channel, i ) +
+                    hiBuffer.getSample ( channel, i )
+                ) * wetMix
             );
         }
     }

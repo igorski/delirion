@@ -33,7 +33,7 @@ namespace Parameters {
     static juce::String LOW_BAND        = "lowBand";
     static juce::String MID_BAND        = "midBand";
     static juce::String HI_BAND         = "hiBand";
-    static juce::String REVERB_MIX      = "reverbMix";
+    static juce::String WET_DRY_MIX     = "wetDryMix";
     static juce::String REVERB_FREEZE   = "reverbFreeze";
 
     namespace Ranges {
@@ -47,10 +47,10 @@ namespace Parameters {
 
     namespace Config {
 
-        // LFO duration is defined in seconds
+        // recording duration is defined in seconds
 
-        static float LFO_REC_DURATION_MIN = 0.01161f;
-        static float LFO_REC_DURATION_MAX = 0.2322f;
+        static float REC_DURATION_MIN = 0.01161f;
+        static float REC_DURATION_MAX = 0.2322f;
 
         // LFO speed is defined in Hz
 
@@ -64,9 +64,10 @@ namespace Parameters {
         static float MID_BAND_DEF = 1000.f;
         static float HI_BAND_DEF  = 5000.f;
 
+        static float WET_DRY_MIX_DEF = 1.f; // 100 % wet
+
         static float REVERB_WIDTH_DEF  = 0.15f;
         static float REVERB_SIZE_DEF   = 1.f;
-        static float REVERB_MIX_DEF    = 1.f;
         static const int NUM_COMBS     = 8;
         static const int NUM_ALLPASSES = 4;
         static const int COMB_TUNINGS[ NUM_COMBS ] = { 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 };

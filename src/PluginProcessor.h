@@ -91,7 +91,10 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
                 Parameters::Ranges::HI_BAND_MIN, Parameters::Ranges::HI_BAND_MAX, Parameters::Config::HI_BAND_DEF
             ));
 
-            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::REVERB_MIX, "Reverb mix", 0.f, 1.f, Parameters::Config::REVERB_MIX_DEF ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::WET_DRY_MIX, "Wet / dry mix",
+                0.f, 1.f, Parameters::Config::WET_DRY_MIX_DEF
+            ));
+
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::REVERB_FREEZE, "Freeze",  0.f, 1.f, 0.f ));    
             
             return { params.begin(), params.end() };
@@ -141,7 +144,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         std::atomic<float>* lowBand;
         std::atomic<float>* midBand;
         std::atomic<float>* hiBand;
-        std::atomic<float>* reverbMix;
+        std::atomic<float>* wetDryMix;
         std::atomic<float>* reverbFreeze;
         
         //==============================================================================
