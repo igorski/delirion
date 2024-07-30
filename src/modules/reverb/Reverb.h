@@ -71,6 +71,7 @@ class Reverb {
     static constexpr float INITIAL_WIDTH      = 1;
     static constexpr int INITIAL_MODE         = 0;
     static constexpr int FREEZE_MODE          = 1;
+    static constexpr int FREEZE_PENDING       = 2;
     static constexpr int STEREO_SPREAD        = 23;
 
     public:
@@ -134,6 +135,7 @@ class Reverb {
         float _width;
         int _mode;
         float _sampleRate;
+        int _freezeDelay = 0;
 
         CombFilter*    _combFilter    = nullptr;
         AllPassFilter* _allpassFilter = nullptr;

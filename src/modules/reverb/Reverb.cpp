@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  *
- * Copyright (c) 2019-2022 Igor Zinken - https://www.igorski.nl
+ * Copyright (c) 2019-2024 Igor Zinken - https://www.igorski.nl
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,6 +22,7 @@
  */
 #include <math.h>
 #include "Reverb.h"
+#include "../../utils/Calc.h"
 
 Reverb::Reverb( double sampleRate, float width, float roomSize )
 {
@@ -55,6 +56,13 @@ void Reverb::apply( juce::AudioBuffer<float>& buffer, int channel )
 
     for ( int i = 0; i < bufferSize; ++i ) {
         channelData[ i ] = processSingle( channelData[ i ]);
+    }
+    if ( _mode == FREEZE_PENDING ) {
+        _freezeDelay -= bufferSize;
+        if ( _freezeDelay <= 0 ) {
+            _mode = FREEZE_MODE;
+            update(); // will activate the freeze now that there is a large enough buffer of reverberated audio
+        }
     }
 }
 
@@ -134,8 +142,19 @@ int Reverb::getMode()
 
 void Reverb::setMode( int value )
 {
-    _mode = value;
-    update();
+    int currentMode = _mode;
+
+    if ( currentMode == FREEZE_PENDING && value == FREEZE_MODE ) {
+        return;
+    }
+
+    if ( currentMode == INITIAL_MODE && value == FREEZE_MODE ) {
+        _mode = FREEZE_PENDING;
+        _freezeDelay = Calc::secondsToBuffer( Parameters::Config::REVERB_FREEZE_TIMEOUT, _sampleRate );
+    } else {
+        _mode = value;
+        update();
+    }
 }
 
 void Reverb::toggleFreeze()

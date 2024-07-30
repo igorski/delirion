@@ -68,6 +68,8 @@ namespace Parameters {
 
         static float REVERB_WIDTH_DEF  = 0.15f;
         static float REVERB_SIZE_DEF   = 1.f;
+        static float REVERB_FREEZE_TIMEOUT = 0.1f; // in seconds
+
         static const int NUM_COMBS     = 8;
         static const int NUM_ALLPASSES = 4;
         static const int COMB_TUNINGS[ NUM_COMBS ] = { 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 };
