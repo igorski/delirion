@@ -21,22 +21,24 @@
 // #include "../interpolator/CubicInterpolator.h"
 #include "../interpolator/RateInterpolator.h"
 #include "../oscillator/LFO.h"
+#include "../../Parameters.h"
 
 class DopplerEffect
 {
-    const float MIN_DOPPLER_RATE      = 0.5f;
-    const float MAX_DOPPLER_RATE      = 2.0f;
-    const float MIN_OBSERVER_DISTANCE = 1.f;
-    const float MAX_OBSERVER_DISTANCE = 10.f;
-    const float SPEED_OF_SOUND        = 343.0f; // in m/s
-    const float TWO_PI                = 2.f * juce::MathConstants<float>::pi;
-    const float DC_OFFSET_FILTER      = 0.995f;
+    const float MIN_DOPPLER_RATE       = 0.5f;
+    const float MAX_DOPPLER_RATE       = 2.0f;
+    const float MIN_OBSERVER_DISTANCE  = 1.f;
+    const float MAX_OBSERVER_DISTANCE  = 10.f;
+    const float SPEED_OF_SOUND         = 343.0f; // in m/s
+    const float TWO_PI                 = 2.f * juce::MathConstants<float>::pi;
+    const float DC_OFFSET_FILTER       = 0.995f;
+    const float MAX_LFO_CYCLE_DURATION = 1.0f / Parameters::Config::LFO_MIN_RATE; // duration of the slowest LFO cycle in seconds
 
     public:
         DopplerEffect( double sampleRate, int bufferSize );
         ~DopplerEffect();
 
-        void setSpeed( float value );
+        void setProperties( float speed, bool invert );
         void setRecordingLength( float normalizedRange );
         void resetOscillators();
 
@@ -51,7 +53,7 @@ class DopplerEffect
         RateInterpolator speedInterpolator;
         LFO lfo;
         bool interpolateRate = true;
-
+        
         void recordInput( juce::AudioBuffer<float>& buffer, int channel );
         void updateReadPosition( int bufferSize );
 
@@ -61,7 +63,8 @@ class DopplerEffect
         int maxRecordBufferSize = 0;
         int readPosition;
         int writePosition;
-
+        bool invertDirection = true;
+        
         bool readFromRecordBuffer = false;
         int totalRecordedSamples  = 0;
         int minRequiredSamples;

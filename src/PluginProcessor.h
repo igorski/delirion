@@ -97,6 +97,8 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::REVERB_FREEZE, "Freeze",  0.f, 1.f, 0.f ));    
             
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::INVERT_DIRECTION, "Invert", 0.f, 1.f, Parameters::Config::INVERT_DIR_DEF ));    
+            
             return { params.begin(), params.end() };
         }
 
@@ -146,6 +148,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         std::atomic<float>* hiBand;
         std::atomic<float>* wetDryMix;
         std::atomic<float>* reverbFreeze;
+        std::atomic<float>* invertDirection;
         
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessor )

@@ -15,23 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "DopplerEffect.h"
-#include "../../Parameters.h"
 #include "../../utils/Calc.h"
 
 /* constructor/destructor */
 
-DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpolator( 1.0f, 0.01f ), speedInterpolator( 1.f, 0.01f ), lfo( sampleRate )
+DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpolator( 1.0f, 0.1f ), speedInterpolator( 1.f, 0.01f ), lfo( sampleRate )
 {
     lfo.setDepth(( 1.f / MAX_OBSERVER_DISTANCE ) * 0.025f );
 
     _sampleRate = static_cast<float>( sampleRate );
     _bufferSize = bufferSize;
 
-    setRecordingLength( 1.f / Parameters::Config::LFO_MIN_RATE ); // recording should last for a single cycle at the lowest rate
+    setRecordingLength( MAX_LFO_CYCLE_DURATION ); // recording should last for a single cycle at the lowest rate
     maxRecordBufferSize = recordBufferSize; // recordBufferSize has been calculated by setRecordingLength()
 
-    minRequiredSamples = bufferSize * static_cast<int>( ceil( MAX_DOPPLER_RATE ));
-
+    // Calculate the number of samples needed based on max doppler rate adjustments
+    // in order to perform an upwards Doppler shift we need to read forward in time, meaning that
+    // the buffer needs to be prefilled before we can start reading. To be completely safe, the amount
+    // should be equal to: static_cast<int>( sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE );
+    // though this requires a large pre-record buffer. We can optimise this at the risk of having
+    // an occasional glitch
+    
+    minRequiredSamples = static_cast<int>( sampleRate * MIN_DOPPLER_RATE );
+    
     recordBuffer.setSize( 1, maxRecordBufferSize );
     recordBuffer.clear(); // fills buffer with silence
 
@@ -46,16 +52,18 @@ DopplerEffect::~DopplerEffect()
 
 /* public methods */
 
-void DopplerEffect::setSpeed( float value )
+void DopplerEffect::setProperties( float speed, bool invert )
 {
-    float scaledValue = juce::jmap( value, 0.f, 1.f, Parameters::Config::LFO_MIN_RATE, Parameters::Config::LFO_MAX_RATE );
-    lfo.setRate( scaledValue );
+    float scaledSpeed = juce::jmap( speed, 0.f, 1.f, Parameters::Config::LFO_MIN_RATE, Parameters::Config::LFO_MAX_RATE );
+    lfo.setRate( scaledSpeed );
+
+    invertDirection = invert;
 }
 
 void DopplerEffect::setRecordingLength( float normalizedRange )
 {
     int durationInSamples = Calc::secondsToBuffer(
-        juce::jmap( normalizedRange, 0.f, 1.f, Parameters::Config::LFO_REC_DURATION_MIN, Parameters::Config::LFO_REC_DURATION_MAX ),
+        juce::jmap( normalizedRange, 0.f, 1.f, Parameters::Config::REC_DURATION_MIN, Parameters::Config::REC_DURATION_MAX ),
         _sampleRate
     );
 
@@ -99,8 +107,8 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
 
         if ( totalRecordedSamples >= minRequiredSamples ) {
             readFromRecordBuffer = true;
-        } else {
-            return; // need to fill up the record buffer
+        } else if ( !invertDirection ) {
+            return; // need to fill up the record buffer before doing upward shifts
         }
     }
 
@@ -114,6 +122,7 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
     auto* channelData = buffer.getWritePointer( channel );
 
     float distanceMultiplier = lfoRate * TWO_PI;
+    float resampledIndex;
 
     for ( int i = 0; i < bufferSize; ++i ) {
 
@@ -134,15 +143,21 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
             dopplerRate = rateInterpolator.setValue( dopplerRate );
         }
 
-        // calculate the index of the sample from the record buffer
+        // calculate the read index of the sample inside the record buffer
 
-        float resampledIndex = ( readPosition + i ) / dopplerRate;
+        if ( invertDirection ) {
+            resampledIndex = ( readPosition + i ) * dopplerRate;
+        } else {
+            resampledIndex = ( readPosition + i ) / dopplerRate;
+        }
+
+        // ensure the resampleIndex remains within record bounds (prevents frac from exceeding max -1.f to +1.f sample values)
+
+        resampledIndex = fmod( resampledIndex, fRecordBufferSize );
         if ( resampledIndex < 0 ) {
             resampledIndex += recordBufferSize;
         }
-        // ensure the resampleIndex remains within record bounds (prevents frac from exceeding max -1.f to +1.f sample values)
-        resampledIndex = fmod( resampledIndex, fRecordBufferSize );
-    
+
         int index  = static_cast<int>( resampledIndex );// % recordBufferSize;
         float frac = resampledIndex - static_cast<float>( index );
 
@@ -173,7 +188,7 @@ void DopplerEffect::recordInput( juce::AudioBuffer<float>& buffer, int channel )
 {
     auto* channelData = buffer.getReadPointer( channel );
     int bufferSize    = buffer.getNumSamples();
-  
+ 
     for ( int i = 0; i < bufferSize; ++i ) {
         recordBuffer.setSample( 0, writePosition + i, channelData[ i ]);
     }

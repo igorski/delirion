@@ -19,23 +19,24 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 namespace Parameters {
-    static juce::String LOW_LFO_ODD     = "lowLfoOdd";
-    static juce::String LOW_LFO_EVEN    = "lowLfoEven";
-    static juce::String LOW_LFO_LINK    = "lowLfoLink";
-    static juce::String MID_LFO_ODD     = "midLfoOdd";
-    static juce::String MID_LFO_EVEN    = "midLfoEven";
-    static juce::String MID_LFO_LINK    = "midLfoLink";
-    static juce::String HI_LFO_ODD      = "hiLfoOdd";
-    static juce::String HI_LFO_EVEN     = "hiLfoEven";
-    static juce::String HI_LFO_LINK     = "hiLfoLink";
-    static juce::String BIT_AMOUNT      = "bitAmount";
-    static juce::String BIT_MIX         = "bitMix";
-    static juce::String LOW_BAND        = "lowBand";
-    static juce::String MID_BAND        = "midBand";
-    static juce::String HI_BAND         = "hiBand";
-    static juce::String WET_DRY_MIX     = "wetDryMix";
-    static juce::String REVERB_FREEZE   = "reverbFreeze";
-
+    static juce::String LOW_LFO_ODD      = "lowLfoOdd";
+    static juce::String LOW_LFO_EVEN     = "lowLfoEven";
+    static juce::String LOW_LFO_LINK     = "lowLfoLink";
+    static juce::String MID_LFO_ODD      = "midLfoOdd";
+    static juce::String MID_LFO_EVEN     = "midLfoEven";
+    static juce::String MID_LFO_LINK     = "midLfoLink";
+    static juce::String HI_LFO_ODD       = "hiLfoOdd";
+    static juce::String HI_LFO_EVEN      = "hiLfoEven";
+    static juce::String HI_LFO_LINK      = "hiLfoLink";
+    static juce::String BIT_AMOUNT       = "bitAmount";
+    static juce::String BIT_MIX          = "bitMix";
+    static juce::String LOW_BAND         = "lowBand";
+    static juce::String MID_BAND         = "midBand";
+    static juce::String HI_BAND          = "hiBand";
+    static juce::String WET_DRY_MIX      = "wetDryMix";
+    static juce::String REVERB_FREEZE    = "reverbFreeze";
+    static juce::String INVERT_DIRECTION = "invertDirection";
+    
     namespace Ranges {
         static float LOW_BAND_MIN = 20.f;
         static float LOW_BAND_MAX = 500.f;
@@ -69,6 +70,8 @@ namespace Parameters {
         static float REVERB_WIDTH_DEF  = 0.15f;
         static float REVERB_SIZE_DEF   = 1.f;
         static float REVERB_FREEZE_TIMEOUT = 0.1f; // in seconds
+
+        static float INVERT_DIR_DEF = 1.f;
 
         static const int NUM_COMBS     = 8;
         static const int NUM_ALLPASSES = 4;
