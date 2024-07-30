@@ -40,6 +40,7 @@ class DopplerEffect
 
         void setProperties( float speed, bool invert );
         void setRecordingLength( float normalizedRange );
+        void sync( double tempo, int timeSigNominator, int timeSigDenominator );
         void resetOscillators();
 
         // applies the Doppler effect onto the provided buffer at provided channel

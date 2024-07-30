@@ -115,6 +115,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         /* runtime state */
 
         void resetOscillators();
+        bool alignWithSequencer( juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo );
 
     private:
         juce::OwnedArray<juce::IIRFilter> lowPassFilters;
@@ -128,8 +129,12 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         juce::OwnedArray<Reverb> reverbs;
         
         double _sampleRate;
-        bool isPlaying = false;
- 
+        
+        bool isPlaying  = false;
+        int timeSigNumerator   = 4;
+        int timeSigDenominator = 4;
+        double tempo = 120.0;
+        
         // parameters
 
         std::atomic<float>* lowLfoOdd;

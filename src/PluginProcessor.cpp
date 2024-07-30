@@ -240,20 +240,19 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
 {
     juce::ignoreUnused( midiMessages );
     juce::ScopedNoDenormals noDenormals;
-
-    auto currentPosition = getPlayHead()->getPosition();
-
-    if ( currentPosition.hasValue()) {
-        bool wasPlaying = isPlaying;
-        isPlaying = currentPosition->getIsPlaying();
-
-        if ( !wasPlaying && isPlaying ) {
-            resetOscillators();
-        }
-    }
   
     int channelAmount = buffer.getNumChannels();
     int bufferSize    = buffer.getNumSamples();
+
+    auto currentPosition = getPlayHead()->getPosition();
+
+    if ( currentPosition.hasValue() && alignWithSequencer( currentPosition )) {
+        for ( int channel = 0; channel < channelAmount; ++channel ) {
+            lowDopplerEffects[ channel ]->sync( tempo, timeSigNumerator, timeSigDenominator );
+            midDopplerEffects[ channel ]->sync( tempo, timeSigNumerator, timeSigDenominator );
+            hiDopplerEffects [ channel ]->sync( tempo, timeSigNumerator, timeSigDenominator );
+        }    
+    }
 
     float dryMix = 1.f - *wetDryMix;
     float wetMix = *wetDryMix;
@@ -345,6 +344,34 @@ void AudioPluginAudioProcessor::resetOscillators()
         midDopplerEffects[ channel ]->resetOscillators();
         hiDopplerEffects [ channel ]->resetOscillators();
     }
+}
+
+bool AudioPluginAudioProcessor::alignWithSequencer( juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo )
+{
+    bool wasPlaying = isPlaying;
+    isPlaying = positionInfo->getIsPlaying();
+
+    if ( !wasPlaying && isPlaying ) {
+        resetOscillators();
+    }
+
+    bool hasChange = false;
+
+    auto curTempo = positionInfo->getBpm();
+    auto timeSig  = positionInfo->getTimeSignature();
+
+    if ( curTempo.hasValue() && !juce::approximatelyEqual( tempo, *curTempo )) {
+        tempo = *curTempo;
+        hasChange = true;
+    }
+
+    if ( timeSig.hasValue() && ( timeSigNumerator != timeSig->numerator || timeSigDenominator != timeSig->denominator )) {
+        timeSigNumerator   = timeSig->numerator;
+        timeSigDenominator = timeSig->denominator;
+
+        hasChange = true;
+    }
+    return hasChange;
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

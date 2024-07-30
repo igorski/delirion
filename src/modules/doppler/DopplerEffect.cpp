@@ -28,15 +28,6 @@ DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpol
 
     setRecordingLength( MAX_LFO_CYCLE_DURATION ); // recording should last for a single cycle at the lowest rate
     maxRecordBufferSize = recordBufferSize; // recordBufferSize has been calculated by setRecordingLength()
-
-    // Calculate the number of samples needed based on max doppler rate adjustments
-    // in order to perform an upwards Doppler shift we need to read forward in time, meaning that
-    // the buffer needs to be prefilled before we can start reading. To be completely safe, the amount
-    // should be equal to: static_cast<int>( sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE );
-    // though this requires a large pre-record buffer. We can optimise this at the risk of having
-    // an occasional glitch
-    
-    minRequiredSamples = static_cast<int>( sampleRate * MIN_DOPPLER_RATE );
     
     recordBuffer.setSize( 1, maxRecordBufferSize );
     recordBuffer.clear(); // fills buffer with silence
@@ -84,6 +75,27 @@ void DopplerEffect::setRecordingLength( float normalizedRange )
     if ( writePosition > recordBufferSize ) {
         writePosition = 0;
     }
+}
+
+void DopplerEffect::sync( double tempo, int timeSigNominator, int timeSigDenominator )
+{
+    juce::ignoreUnused( timeSigNominator );
+
+    float fullMeasureDuration = ( 60.f / static_cast<float>( tempo )) * timeSigDenominator; // seconds per measure
+    float fullMeasureSamples  = Calc::secondsToBuffer( fullMeasureDuration, _sampleRate );
+    int beatSamples           = static_cast<int>( ceil( fullMeasureSamples / timeSigDenominator ));
+    
+    // Calculate the number of samples needed to perform an upwards Doppler shift, as this requires
+    // reading "forward in time", e.g.: the buffer needs to be prefilled before we can start reading.
+    // To be completely safe, the amount should be equal to: static_cast<int>( sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE );
+    // though this requires a large pre-record buffer. We "optimise" this at the risk of having an occasional glitch
+    // by going for a subset of a measure at the current tempo and time signature
+    
+    minRequiredSamples = static_cast<int>( _sampleRate * MAX_DOPPLER_RATE );
+
+    // convert the value to be a multiple of a single beat
+    minRequiredSamples += ( minRequiredSamples % beatSamples ); // ensure its larger than a single beat so it exceeds the above min
+    minRequiredSamples = std::min( recordBufferSize, minRequiredSamples ); // keep within buffer bounds
 }
 
 void DopplerEffect::resetOscillators()
