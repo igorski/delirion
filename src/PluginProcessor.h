@@ -17,9 +17,10 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "modules/bitcrusher/Bitcrusher.h"
+// #include "modules/bitcrusher/Bitcrusher.h"
 #include "modules/doppler/DopplerEffect.h"
 #include "modules/reverb/Reverb.h"
+#include "modules/waveshaper/WaveShaper.h"
 #include "Parameters.h"
 #include "ParameterListener.h"
 #include "ParameterSubscriber.h"
@@ -78,8 +79,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_LFO_EVEN,  "Hi LFO even",  0.f, 1.f, 0.f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_LFO_LINK,  "Hi LFO link",  0.f, 1.f, 1.f )); 
             
-            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_AMOUNT, "Crush amount", 0.f, 1.f, Parameters::Config::BITCRUSHER_AMT_DEF ));
-            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::BIT_MIX, "Bit mix", 0.f, 1.f, Parameters::Config::BITCRUSHER_WET_DEF ));
+            params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::DISTORTION_MIX, "Low drive", 0.f, 1.f, Parameters::Config::DISTORTION_WET_DEF ));
             
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::LOW_BAND, "Low band",
                 Parameters::Ranges::LOW_BAND_MIN, Parameters::Ranges::LOW_BAND_MAX, Parameters::Config::LOW_BAND_DEF
@@ -122,7 +122,8 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         juce::OwnedArray<juce::IIRFilter> bandPassFilters;
         juce::OwnedArray<juce::IIRFilter> highPassFilters;
 
-        BitCrusher* bitCrusher = nullptr;
+        // BitCrusher* bitCrusher = nullptr;
+        WaveShaper* waveShaper = nullptr;
         juce::OwnedArray<DopplerEffect> lowDopplerEffects;
         juce::OwnedArray<DopplerEffect> midDopplerEffects;
         juce::OwnedArray<DopplerEffect> hiDopplerEffects;
@@ -146,8 +147,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         std::atomic<float>* hiLfoOdd;
         std::atomic<float>* hiLfoEven;
         std::atomic<float>* hiLfoLink;
-        std::atomic<float>* bitAmount;
-        std::atomic<float>* bitMix;
+        std::atomic<float>* distortionMix;
         std::atomic<float>* lowBand;
         std::atomic<float>* midBand;
         std::atomic<float>* hiBand;

@@ -28,8 +28,7 @@ namespace Parameters {
     static juce::String HI_LFO_ODD       = "hiLfoOdd";
     static juce::String HI_LFO_EVEN      = "hiLfoEven";
     static juce::String HI_LFO_LINK      = "hiLfoLink";
-    static juce::String BIT_AMOUNT       = "bitAmount";
-    static juce::String BIT_MIX          = "bitMix";
+    static juce::String DISTORTION_MIX   = "distMix";
     static juce::String LOW_BAND         = "lowBand";
     static juce::String MID_BAND         = "midBand";
     static juce::String HI_BAND          = "hiBand";
@@ -58,8 +57,8 @@ namespace Parameters {
         static float LFO_MIN_RATE = 0.1f;
         static float LFO_MAX_RATE = 1.f;
         
-        static float BITCRUSHER_AMT_DEF = 1.f;
-        static float BITCRUSHER_WET_DEF = 0.5f;
+        static float DISTORTION_AMT_DEF = 0.f;
+        static float DISTORTION_WET_DEF = 0.f;
 
         static float LOW_BAND_DEF = 200.f;
         static float MID_BAND_DEF = 1000.f;

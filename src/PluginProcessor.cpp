@@ -41,8 +41,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
     hiLfoEven  = parameters.getRawParameterValue( Parameters::HI_LFO_EVEN );
     hiLfoLink  = parameters.getRawParameterValue( Parameters::HI_LFO_LINK );
 
-    bitAmount = parameters.getRawParameterValue( Parameters::BIT_AMOUNT );
-    bitMix    = parameters.getRawParameterValue( Parameters::BIT_MIX );
+    distortionMix = parameters.getRawParameterValue( Parameters::DISTORTION_MIX );
 
     lowBand = parameters.getRawParameterValue( Parameters::LOW_BAND );
     midBand = parameters.getRawParameterValue( Parameters::MID_BAND );
@@ -153,8 +152,10 @@ void AudioPluginAudioProcessor::changeProgramName( int index, const juce::String
 
 void AudioPluginAudioProcessor::updateParameters()
 {
-    bitCrusher->setAmount( *bitAmount );
-    bitCrusher->setOutputMix( *bitMix );
+    // bitCrusher->setAmount( *distortionMix );
+    // bitCrusher->setOutputMix( *distortionMix );
+    waveShaper->setAmount( *distortionMix );
+    waveShaper->setLevel( *distortionMix );
 
     int channelAmount = getTotalNumOutputChannels();
 
@@ -210,7 +211,8 @@ void AudioPluginAudioProcessor::prepareToPlay( double sampleRate, int samplesPer
 
         reverbs.add( new Reverb( sampleRate, Parameters::Config::REVERB_WIDTH_DEF, Parameters::Config::REVERB_SIZE_DEF ));
     }
-    bitCrusher = new BitCrusher( Parameters::Config::BITCRUSHER_AMT_DEF, 1.f, Parameters::Config::BITCRUSHER_WET_DEF );
+    // bitCrusher = new BitCrusher( Parameters::Config::DISTORTION_AMT_DEF, 1.f, Parameters::Config::DISTORTION_WET_DEF );
+    waveShaper = new WaveShaper( Parameters::Config::DISTORTION_AMT_DEF, Parameters::Config::DISTORTION_WET_DEF );
     
     // align values with model
     updateParameters();
@@ -228,9 +230,13 @@ void AudioPluginAudioProcessor::releaseResources()
 
     reverbs.clear();
 
-    if ( bitCrusher != nullptr ) {
-        delete bitCrusher;
-        bitCrusher = nullptr;
+    // if ( bitCrusher != nullptr ) {
+    //     delete bitCrusher;
+    //     bitCrusher = nullptr;
+    // }
+    if ( waveShaper != nullptr ) {
+        delete waveShaper;
+        waveShaper = nullptr;
     }
 }
 
@@ -270,7 +276,7 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
 
         lowBuffer.copyFrom ( channel, 0, buffer, channel, 0, bufferSize );
         midBuffer.copyFrom ( channel, 0, buffer, channel, 0, bufferSize );
-        hiBuffer.copyFrom( channel, 0, buffer, channel, 0, bufferSize );
+        hiBuffer.copyFrom  ( channel, 0, buffer, channel, 0, bufferSize );
 
         lowDopplerEffects[ channel ]->apply( lowBuffer, channel );
         midDopplerEffects[ channel ]->apply( midBuffer, channel );
@@ -278,7 +284,8 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
 
         // apply the effects
 
-        bitCrusher->apply( lowBuffer, channel );
+        // bitCrusher->apply( lowBuffer, channel );
+        waveShaper->apply( lowBuffer, channel );
 
         reverbs[ channel ]->apply( midBuffer, channel );
         
