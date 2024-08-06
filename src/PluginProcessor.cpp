@@ -172,7 +172,7 @@ void AudioPluginAudioProcessor::updateParameters()
         midDopplerEffects[ channel ]->setProperties( linkMid || isOddChannel ? *midLfoOdd : *midLfoEven, invert );
         hiDopplerEffects [ channel ]->setProperties( linkHi  || isOddChannel ? *hiLfoOdd  : *hiLfoEven,  invert );
 
-        reverbs[ channel ]->setWet( freeze ? 1.f : 0.f );
+        reverbs[ channel ]->setWet( freeze ? 2.f : 0.f ); // make louder when frozen
         reverbs[ channel ]->setDry( freeze ? 0.f : 1.f  );
         reverbs[ channel ]->setMode( freeze ? 1 : 0 );
 

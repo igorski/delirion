@@ -57,8 +57,8 @@ namespace Parameters {
         static float LFO_MIN_RATE = 0.1f;
         static float LFO_MAX_RATE = 1.f;
         
-        static float DISTORTION_AMT_DEF = 0.f;
-        static float DISTORTION_WET_DEF = 0.f;
+        static float DISTORTION_AMT_DEF = 0.5f;
+        static float DISTORTION_WET_DEF = DISTORTION_AMT_DEF;
 
         static float LOW_BAND_DEF = 200.f;
         static float MID_BAND_DEF = 1000.f;
@@ -68,7 +68,7 @@ namespace Parameters {
 
         static float REVERB_WIDTH_DEF  = 0.15f;
         static float REVERB_SIZE_DEF   = 1.f;
-        static float REVERB_FREEZE_TIMEOUT = 0.1f; // in seconds
+        static float REVERB_FREEZE_TIMEOUT = 0.15f; // in seconds
 
         static float INVERT_DIR_DEF = 1.f;
 
