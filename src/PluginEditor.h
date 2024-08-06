@@ -21,6 +21,12 @@
 //==============================================================================
 class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
 {
+    const int WIDTH  = 1441;
+    const int HEIGHT = 830;
+    
+    const int VERSION_WIDTH  = 68;
+    const int VERSION_HEIGHT = 25;
+    
     public:
         explicit AudioPluginAudioProcessorEditor( AudioPluginAudioProcessor& p, juce::AudioProcessorValueTreeState& state );
         ~AudioPluginAudioProcessorEditor() override;
@@ -29,11 +35,16 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         void resized() override;
 
     private:
-        AudioPluginAudioProcessor& processorRef;
         juce::AudioProcessorValueTreeState& parameters;
 
         std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sliderAttachments;
         std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>> buttonAttachments;
+
+        int scaledWidth;
+        int scaledHeight;
+
+        static const unsigned int BACKGROUND_COLOR = 0xff444444;
+        static const unsigned int HIGHLIGHT_COLOR  = 0xffD92666;
 
         /* automatable parameters */
 
@@ -47,15 +58,15 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         juce::Slider hiLfoEvenControl;
         juce::ToggleButton hiLfoLinkControl;
 
-        juce::Slider bitAmountControl;
-        juce::Slider bitMixControl;
+        juce::Slider distMixControl;
     
         juce::Slider lowBandControl;
         juce::Slider midBandControl;
         juce::Slider hiBandControl;
     
-        juce::Slider reverbMixControl;
+        juce::Slider dryWetMixControl;
         juce::ToggleButton reverbFreezeControl;
+        juce::ToggleButton invertDirectionControl;
 
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowLfoOddAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowLfoEvenAtt;
@@ -67,21 +78,32 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hiLfoEvenAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> hiLfoLinkAtt;
 
-        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitAmountAtt;
-        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitMixAtt;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> distMixAtt;
         
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowBandAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> midBandAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hiBandAtt;
         
-        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> reverbMixAtt;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dryWetMixAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> reverbFreezeAtt;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> invertDirectionAtt;
     
-        inline std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> createControl( const juce::String& title, juce::Slider& controlElement )
+        inline std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> createControl( const juce::String& title, juce::Slider& controlElement, bool rotary )
         {
             addAndMakeVisible( controlElement );
-            controlElement.setSliderStyle ( juce::Slider::Rotary );
-            controlElement.setTextBoxStyle( juce::Slider::TextBoxBelow, false, 50, 20 );
+
+            controlElement.setTextBoxStyle( juce::Slider::NoTextBox, true, 0, 0 );
+            controlElement.getLookAndFeel().setColour( juce::Slider::thumbColourId, juce::Colour( 0xffb6b6b6 ));
+            
+            if ( rotary ) {
+                controlElement.setSliderStyle ( juce::Slider::Rotary );
+                controlElement.getLookAndFeel().setColour( juce::Slider::rotarySliderOutlineColourId, juce::Colour( BACKGROUND_COLOR ));
+                controlElement.getLookAndFeel().setColour( juce::Slider::rotarySliderFillColourId,    juce::Colour( HIGHLIGHT_COLOR ));
+            } else {
+                controlElement.getLookAndFeel().setColour( juce::Slider::backgroundColourId, juce::Colour( BACKGROUND_COLOR ));
+                controlElement.getLookAndFeel().setColour( juce::Slider::trackColourId, juce::Colour( HIGHLIGHT_COLOR ));
+            }
+            controlElement.getLookAndFeel().setColour( juce::Slider::thumbColourId, juce::Colour( 0x00000000 ));
 
             return std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>( parameters, title, controlElement );
         }

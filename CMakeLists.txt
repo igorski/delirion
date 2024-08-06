@@ -19,9 +19,9 @@ cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-set(PROJECT_NAME "doppler") # equals build target
+set(PROJECT_NAME "delirion") # equals build target
 set(PROJECT_VERSION 1.0.0)
-set(PLUGIN_NAME "igorski.nl Doppler")
+set(PLUGIN_NAME "Delirion")
 
 ######################
 # JUCE configuration #
@@ -96,8 +96,8 @@ juce_add_plugin(${PROJECT_NAME}
     IS_MIDI_EFFECT FALSE                        # Is this plugin a MIDI effect?
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE           # Does the editor need keyboard focus?
     COPY_PLUGIN_AFTER_BUILD TRUE                # Should the plugin be installed to a default location after building?
-    PLUGIN_MANUFACTURER_CODE IGOR               # A four-character manufacturer id with at least one upper-case character
-    PLUGIN_CODE D0pp                            # A unique four-character plugin id with exactly one upper-case character
+    PLUGIN_MANUFACTURER_CODE IGOR               # A four-character manufacturer id with at least one upper-case character, used for plugin UID generation
+    PLUGIN_CODE D0pp                            # A unique four-character plugin id with exactly one upper-case character, used for plugin UID generation
                                                 # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
     FORMATS ${PLUGIN_FORMATS}                   # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "${PLUGIN_NAME}"               # The name of the final executable, which can differ from the target name
@@ -105,7 +105,7 @@ juce_add_plugin(${PROJECT_NAME}
 
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
-        JUCE_WEB_BROWSER=0               # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
+        JUCE_WEB_BROWSER=0              # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
         JUCE_USE_CURL=0                 # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
         JUCE_DISPLAY_SPLASH_SCREEN=0    # only when source remains available under GPL3 license!
         JUCE_REPORT_APP_USAGE=0         # disabled by default in JUCE 6
@@ -119,12 +119,13 @@ target_compile_definitions(${PROJECT_NAME}
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-        src/modules/bitcrusher/Bitcrusher.cpp
+        # src/modules/bitcrusher/Bitcrusher.cpp
         src/modules/doppler/DopplerEffect.cpp
         src/modules/oscillator/LFO.cpp
         src/modules/reverb/Allpass.cpp
         src/modules/reverb/Comb.cpp
         src/modules/reverb/Reverb.cpp
+        src/modules/waveshaper/WaveShaper.cpp
         src/PluginEditor.cpp
         src/PluginProcessor.cpp
     )
@@ -136,7 +137,10 @@ target_sources(${PROJECT_NAME}
 # static library. These source files can be of any kind (wav data, images, fonts, icons etc.).
 # Conversion to binary-data will happen when your target is built.
 
-# juce_add_binary_data(AudioPluginData SOURCES ...)
+juce_add_binary_data(PluginResources SOURCES
+    design/resources/background.png
+    design/resources/version.png
+)
 
 # `target_link_libraries` links libraries and JUCE modules to other libraries or executables. Here,
 # we're linking our executable target to the `juce::juce_audio_utils` module. Inter-module
@@ -146,9 +150,10 @@ target_sources(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-        # AudioPluginData           # If we'd created a binary data target, we'd link to it here
+        PluginResources
         juce::juce_audio_utils
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
-        juce::juce_recommended_warning_flags)
+        juce::juce_recommended_warning_flags
+)
