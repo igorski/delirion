@@ -19,7 +19,7 @@
 
 /* constructor/destructor */
 
-DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpolator( 1.0f, 0.1f ), speedInterpolator( 1.f, 0.01f ), lfo( sampleRate )
+DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpolator( 1.0f, INTERPOLATION_SPEED ), speedInterpolator( 1.f, INTERPOLATION_SPEED ), lfo( sampleRate )
 {
     lfo.setDepth(( 1.f / MAX_OBSERVER_DISTANCE ) * 0.025f );
 
@@ -87,11 +87,13 @@ void DopplerEffect::sync( double tempo, int timeSigNominator, int timeSigDenomin
     
     // Calculate the number of samples needed to perform an upwards Doppler shift, as this requires
     // reading "forward in time", e.g.: the buffer needs to be prefilled before we can start reading.
-    // To be completely safe, the amount should be equal to: static_cast<int>( sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE );
-    // though this requires a large pre-record buffer. We "optimise" this at the risk of having an occasional glitch
+    
+    // To be safe, the amount should be equal to: static_cast<int>( _sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE );
+    // though this requires a large pre-record buffer. We can "optimise" this at the risk of having an occasional glitch
     // by going for a subset of a measure at the current tempo and time signature
     
-    minRequiredSamples = static_cast<int>( _sampleRate * MAX_DOPPLER_RATE );
+    // minRequiredSamples = static_cast<int>( _sampleRate * MAX_DOPPLER_RATE ); // subset
+    minRequiredSamples = static_cast<int>( _sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE ); // full size buffer
 
     // convert the value to be a multiple of a single beat
     minRequiredSamples += ( minRequiredSamples % beatSamples ); // ensure its larger than a single beat so it exceeds the above min
@@ -163,14 +165,13 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
             resampledIndex = ( readPosition + i ) / dopplerRate;
         }
 
-        // ensure the resampleIndex remains within record bounds (prevents frac from exceeding max -1.f to +1.f sample values)
+        // ensure the resampleIndex remains within record bounds
 
         resampledIndex = fmod( resampledIndex, fRecordBufferSize );
         if ( resampledIndex < 0 ) {
             resampledIndex += recordBufferSize;
         }
-
-        int index  = static_cast<int>( resampledIndex );// % recordBufferSize;
+        int index  = static_cast<int>( resampledIndex );
         float frac = resampledIndex - static_cast<float>( index );
 
         // calculate sample value using (more accurate) cubic interpolation

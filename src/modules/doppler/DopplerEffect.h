@@ -33,6 +33,7 @@ class DopplerEffect
     const float TWO_PI                 = 2.f * juce::MathConstants<float>::pi;
     const float DC_OFFSET_FILTER       = 0.995f;
     const float MAX_LFO_CYCLE_DURATION = 1.0f / Parameters::Config::LFO_MIN_RATE; // duration of the slowest LFO cycle in seconds
+    const float INTERPOLATION_SPEED    = 0.005f; // 0.0005f is interesting as it provides a tape slowdown effect
 
     public:
         DopplerEffect( double sampleRate, int bufferSize );
