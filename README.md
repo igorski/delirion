@@ -21,7 +21,7 @@ run the following to clone the JUCE framework into a subfolder `JUCE`, relative 
 git clone https://github.com/juce-framework/JUCE
 ```
 
-_*The version used to create this plugin was [7.0.12](https://github.com/juce-framework/JUCE/releases/tag/7.0.12)_
+_*The version used to create this plugin was [8.0.1](https://github.com/juce-framework/JUCE/releases/tag/8.0.1)_
 
 ### Build
 
