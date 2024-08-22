@@ -26,6 +26,9 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
     
     const int VERSION_WIDTH  = 68;
     const int VERSION_HEIGHT = 25;
+    const int SLIDER_WIDTH   = 80;
+    const int ROTARY_SIZE    = 68;
+    const int ROTARY_MARGIN  = 80;
     
     public:
         explicit AudioPluginAudioProcessorEditor( AudioPluginAudioProcessor& p, juce::AudioProcessorValueTreeState& state );
@@ -96,7 +99,7 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
             controlElement.getLookAndFeel().setColour( juce::Slider::thumbColourId, juce::Colour( 0xffb6b6b6 ));
             
             if ( rotary ) {
-                controlElement.setSliderStyle ( juce::Slider::Rotary );
+                controlElement.setSliderStyle( juce::Slider::Rotary );
                 controlElement.getLookAndFeel().setColour( juce::Slider::rotarySliderOutlineColourId, juce::Colour( BACKGROUND_COLOR ));
                 controlElement.getLookAndFeel().setColour( juce::Slider::rotarySliderFillColourId,    juce::Colour( HIGHLIGHT_COLOR ));
             } else {

@@ -79,35 +79,32 @@ void AudioPluginAudioProcessorEditor::paint( juce::Graphics& g )
 
 void AudioPluginAudioProcessorEditor::resized()
 {
-    int dialRadius  = 80;
-    int dialSpacing = 81;
-    int lowSectionX = 65;
-    int lowSectionY = 110;
+    int lowSectionX = 71;
+    int lowSectionY = 112;
     int midSectionX = lowSectionX + 207;
-    int midSectionY = lowSectionY + 105;
     int hiSectionY  = lowSectionY;
-    int hiSectionX  = midSectionX + 206;
+    int hiSectionX  = midSectionX + 205;
 
-    lowLfoOddControl.setBounds ( lowSectionX, lowSectionY, dialRadius, dialRadius );
-    lowLfoEvenControl.setBounds( lowSectionX + dialSpacing, lowSectionY, dialRadius, dialRadius );
-    lowLfoLinkControl.setBounds( lowSectionX + 68, lowSectionY + 45, dialRadius, dialRadius );
-    lowBandControl.setBounds   ( lowSectionX + 42, 213, dialRadius, dialRadius );
+    lowLfoOddControl.setBounds ( lowSectionX, lowSectionY, ROTARY_SIZE, ROTARY_SIZE );
+    lowLfoEvenControl.setBounds( lowSectionX + ROTARY_MARGIN, lowSectionY, ROTARY_SIZE, ROTARY_SIZE );
+    lowLfoLinkControl.setBounds( lowSectionX + 62, lowSectionY + 44, SLIDER_WIDTH, SLIDER_WIDTH );
+    lowBandControl.setBounds   ( lowSectionX + 41, 218, ROTARY_SIZE, ROTARY_SIZE );
   
-    midLfoOddControl.setBounds ( midSectionX, midSectionY, dialRadius, dialRadius );
-    midLfoEvenControl.setBounds( midSectionX + dialSpacing, midSectionY, dialRadius, dialRadius );
-    midLfoLinkControl.setBounds( midSectionX + 68, lowSectionY + 45, dialRadius, dialRadius );
-    midBandControl.setBounds   ( midSectionX + 42, 103, dialRadius, dialRadius );
+    midLfoOddControl.setBounds ( midSectionX, lowBandControl.getY() + 4, ROTARY_SIZE, ROTARY_SIZE );
+    midLfoEvenControl.setBounds( midSectionX + ROTARY_MARGIN, midLfoOddControl.getY(), ROTARY_SIZE, ROTARY_SIZE );
+    midLfoLinkControl.setBounds( midSectionX + 61, lowLfoLinkControl.getY(), SLIDER_WIDTH, SLIDER_WIDTH );
+    midBandControl.setBounds   ( midSectionX + 40, lowSectionY, ROTARY_SIZE, ROTARY_SIZE );
    
-    hiLfoOddControl.setBounds ( hiSectionX, hiSectionY, dialRadius, dialRadius );
-    hiLfoEvenControl.setBounds( hiSectionX + dialSpacing, hiSectionY, dialRadius, dialRadius );
-    hiLfoLinkControl.setBounds( hiSectionX + 68, hiSectionY + 45, dialRadius, dialRadius );
-    hiBandControl.setBounds   ( hiSectionX + 42, 213, dialRadius, dialRadius );
+    hiLfoOddControl.setBounds ( hiSectionX, hiSectionY, ROTARY_SIZE, ROTARY_SIZE );
+    hiLfoEvenControl.setBounds( hiSectionX + ROTARY_MARGIN, hiSectionY, ROTARY_SIZE, ROTARY_SIZE );
+    hiLfoLinkControl.setBounds( hiSectionX + 63, lowLfoLinkControl.getY(), SLIDER_WIDTH, SLIDER_WIDTH );
+    hiBandControl.setBounds   ( hiSectionX + 40, lowBandControl.getY(), ROTARY_SIZE, ROTARY_SIZE );
     
-    distMixControl.setBounds( 108, 323, dialRadius, dialRadius );
+    distMixControl.setBounds( 108, 323, SLIDER_WIDTH, SLIDER_WIDTH );
 
-    dryWetMixControl.setBounds( 519, 323, dialRadius, dialRadius );
+    dryWetMixControl.setBounds( 519, 323, SLIDER_WIDTH, SLIDER_WIDTH );
     
-    reverbFreezeControl.setBounds( 365, 343, dialRadius, dialRadius );
+    reverbFreezeControl.setBounds( 365, 343, SLIDER_WIDTH, SLIDER_WIDTH );
 
-    invertDirectionControl.setBounds( 365, 49, dialRadius, dialRadius );
+    invertDirectionControl.setBounds( 365, 49, SLIDER_WIDTH, SLIDER_WIDTH );
 }
