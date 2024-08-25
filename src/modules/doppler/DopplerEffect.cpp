@@ -66,7 +66,9 @@ void DopplerEffect::setRecordingLength( float normalizedRange )
         durationInSamples = maxRecordBufferSize;
     }
 
-    recordBufferSize  = durationInSamples + durationInSamples % _bufferSize; // make multiple of block bufferSize
+    // make multiple of block bufferSize
+    float fBufferSize = static_cast<float>( _bufferSize );
+    recordBufferSize  = static_cast<int>( ceil( static_cast<float>( durationInSamples ) / fBufferSize ) * fBufferSize );
     fRecordBufferSize = static_cast<float>( recordBufferSize );
 
     // TODO check this logic if we are going to make this parameter automatable, this crackles like crazy
@@ -82,7 +84,7 @@ void DopplerEffect::sync( double tempo, int timeSigNominator, int timeSigDenomin
     juce::ignoreUnused( timeSigNominator );
 
     float fullMeasureDuration = ( 60.f / static_cast<float>( tempo )) * timeSigDenominator; // seconds per measure
-    float fullMeasureSamples  = Calc::secondsToBuffer( fullMeasureDuration, _sampleRate );
+    float fullMeasureSamples  = static_cast<float>( Calc::secondsToBuffer( fullMeasureDuration, _sampleRate ));
     int beatSamples           = static_cast<int>( ceil( fullMeasureSamples / timeSigDenominator ));
     
     // Calculate the number of samples needed to perform an upwards Doppler shift, as this requires
@@ -201,12 +203,12 @@ void DopplerEffect::recordInput( juce::AudioBuffer<float>& buffer, int channel )
 {
     auto* channelData = buffer.getReadPointer( channel );
     int bufferSize    = buffer.getNumSamples();
- 
+
     for ( int i = 0; i < bufferSize; ++i ) {
-        recordBuffer.setSample( 0, writePosition + i, channelData[ i ]);
+        writePosition = ( writePosition + 1 ) % recordBufferSize;
+        recordBuffer.setSample( 0, writePosition, channelData[ i ]);
     }
-    writePosition = ( writePosition + bufferSize ) % recordBufferSize;
-}
+} 
 
 void DopplerEffect::updateReadPosition( int bufferSize )
 {
