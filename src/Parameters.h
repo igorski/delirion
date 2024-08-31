@@ -70,7 +70,7 @@ namespace Parameters {
         static float REVERB_SIZE_DEF   = 1.f;
         static float REVERB_FREEZE_TIMEOUT = 0.15f; // in seconds
 
-        static float INVERT_DIR_DEF = 1.f;
+        static bool INVERT_DIR_DEF = true;
 
         static const int NUM_COMBS     = 8;
         static const int NUM_ALLPASSES = 4;
