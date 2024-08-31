@@ -32,8 +32,10 @@ DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpol
     recordBuffer.setSize( 1, maxRecordBufferSize );
     recordBuffer.clear(); // fills buffer with silence
 
-    readPosition  = 0;
+    readPosition = 0;
     writePosition = 0;
+    totalRecordedSamples = 0;
+    processedSamples = 0;
 }
 
 DopplerEffect::~DopplerEffect()
@@ -79,13 +81,13 @@ void DopplerEffect::setRecordingLength( float normalizedRange )
     }
 }
 
-void DopplerEffect::sync( double tempo, int timeSigNominator, int timeSigDenominator )
+void DopplerEffect::updateTempo( double tempo, int timeSigNominator, int timeSigDenominator )
 {
     juce::ignoreUnused( timeSigNominator );
 
     float fullMeasureDuration = ( 60.f / static_cast<float>( tempo )) * timeSigDenominator; // seconds per measure
     float fullMeasureSamples  = static_cast<float>( Calc::secondsToBuffer( fullMeasureDuration, _sampleRate ));
-    int beatSamples           = static_cast<int>( ceil( fullMeasureSamples / timeSigDenominator ));
+    samplesPerBeat = static_cast<int>( ceil( fullMeasureSamples / timeSigDenominator ));
     
     // Calculate the number of samples needed to perform an upwards Doppler shift, as this requires
     // reading "forward in time", e.g.: the buffer needs to be prefilled before we can start reading.
@@ -98,18 +100,19 @@ void DopplerEffect::sync( double tempo, int timeSigNominator, int timeSigDenomin
     minRequiredSamples = static_cast<int>( _sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE ); // full size buffer
 
     // convert the value to be a multiple of a single beat
-    minRequiredSamples += ( minRequiredSamples % beatSamples ); // ensure its larger than a single beat so it exceeds the above min
+    minRequiredSamples += ( minRequiredSamples % samplesPerBeat ); // ensure its larger than a single beat so it exceeds the above min
     minRequiredSamples = std::min( recordBufferSize, minRequiredSamples ); // keep within buffer bounds
 }
 
-void DopplerEffect::resetOscillators()
+void DopplerEffect::onSequencerStart()
 {
     lfo.setPhase( 0.f );
 
     readFromRecordBuffer = false;
     totalRecordedSamples = 0;
+    processedSamples = 0;
 
-    readPosition = writePosition; // will first buffer for another minRequiredSamples before reading starts
+    readPosition = writePosition; // will first fill buffer for another minRequiredSamples before reading starts
 }
 
 void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
@@ -132,6 +135,7 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
 
     if ( lfoRate == 0.f ) {
         updateReadPosition( bufferSize );
+        // processedSamples += bufferSize;
         return; // nothing else to do
     }
 
@@ -141,6 +145,15 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
     float resampledIndex;
 
     for ( int i = 0; i < bufferSize; ++i ) {
+
+        /* // optional logic to alter effect on every beat
+        if ( ++processedSamples >= samplesPerBeat ) {
+            processedSamples = processedSamples % samplesPerBeat;
+            if ( beatSync ) {
+                // ...do stuff
+            }
+        }
+        */
 
         // move the LFO and convert its position to a "distance in meters"
 

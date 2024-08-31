@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <limits>
 // #include "../interpolator/CubicInterpolator.h"
 #include "../interpolator/RateInterpolator.h"
 #include "../oscillator/LFO.h"
@@ -41,8 +42,8 @@ class DopplerEffect
 
         void setProperties( float speed, bool invert );
         void setRecordingLength( float normalizedRange );
-        void sync( double tempo, int timeSigNominator, int timeSigDenominator );
-        void resetOscillators();
+        void updateTempo( double tempo, int timeSigNominator, int timeSigDenominator );
+        void onSequencerStart();
 
         // applies the Doppler effect onto the provided buffer at provided channel
         // (Doppler effect applies onto individual (mono) channels, not groups)
@@ -66,9 +67,11 @@ class DopplerEffect
         int readPosition;
         int writePosition;
         bool invertDirection = true;
-        
+        int samplesPerBeat = std::numeric_limits<int>::max();
+
         bool readFromRecordBuffer = false;
-        int totalRecordedSamples  = 0;
+        int totalRecordedSamples;
+        int processedSamples;
         int minRequiredSamples;
 
         float previousSampleValue   = 0.0f;

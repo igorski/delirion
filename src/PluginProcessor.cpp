@@ -47,10 +47,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
     midBand = parameters.getRawParameterValue( Parameters::MID_BAND );
     hiBand  = parameters.getRawParameterValue( Parameters::HI_BAND );
 
-    wetDryMix = parameters.getRawParameterValue( Parameters::WET_DRY_MIX );
-
-    reverbFreeze = parameters.getRawParameterValue( Parameters::REVERB_FREEZE );
-
+    wetDryMix       = parameters.getRawParameterValue( Parameters::WET_DRY_MIX );
+    reverbFreeze    = parameters.getRawParameterValue( Parameters::REVERB_FREEZE );
     invertDirection = parameters.getRawParameterValue( Parameters::INVERT_DIRECTION );
 }
 
@@ -164,7 +162,7 @@ void AudioPluginAudioProcessor::updateParameters()
     bool linkHi  = *hiLfoLink  >= 0.5f;
     bool freeze  = *reverbFreeze >= 0.5f;
     bool invert  = *invertDirection >= 0.5f;
-
+ 
     for ( int channel = 0; channel < channelAmount; ++channel ) {
         bool isOddChannel = channel % 2 == 0;
 
@@ -254,9 +252,9 @@ void AudioPluginAudioProcessor::processBlock( juce::AudioBuffer<float>& buffer, 
 
     if ( currentPosition.hasValue() && alignWithSequencer( currentPosition )) {
         for ( int channel = 0; channel < channelAmount; ++channel ) {
-            lowDopplerEffects[ channel ]->sync( tempo, timeSigNumerator, timeSigDenominator );
-            midDopplerEffects[ channel ]->sync( tempo, timeSigNumerator, timeSigDenominator );
-            hiDopplerEffects [ channel ]->sync( tempo, timeSigNumerator, timeSigDenominator );
+            lowDopplerEffects[ channel ]->updateTempo( tempo, timeSigNumerator, timeSigDenominator );
+            midDopplerEffects[ channel ]->updateTempo( tempo, timeSigNumerator, timeSigDenominator );
+            hiDopplerEffects [ channel ]->updateTempo( tempo, timeSigNumerator, timeSigDenominator );
         }    
     }
 
@@ -342,24 +340,20 @@ void AudioPluginAudioProcessor::setStateInformation( const void* data, int sizeI
 
 /* runtime state */
 
-void AudioPluginAudioProcessor::resetOscillators()
-{
-    int channelAmount = getTotalNumOutputChannels();
-
-    for ( int channel = 0; channel < channelAmount; ++channel ) {
-        lowDopplerEffects[ channel ]->resetOscillators();
-        midDopplerEffects[ channel ]->resetOscillators();
-        hiDopplerEffects [ channel ]->resetOscillators();
-    }
-}
-
 bool AudioPluginAudioProcessor::alignWithSequencer( juce::Optional<juce::AudioPlayHead::PositionInfo> positionInfo )
 {
     bool wasPlaying = isPlaying;
     isPlaying = positionInfo->getIsPlaying();
 
     if ( !wasPlaying && isPlaying ) {
-        resetOscillators();
+        // sequencer started playback
+        int channelAmount = getTotalNumOutputChannels();
+
+        for ( int channel = 0; channel < channelAmount; ++channel ) {
+            lowDopplerEffects[ channel ]->onSequencerStart();
+            midDopplerEffects[ channel ]->onSequencerStart();
+            hiDopplerEffects [ channel ]->onSequencerStart();
+        }
     }
 
     bool hasChange = false;
