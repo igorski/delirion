@@ -216,12 +216,32 @@ void DopplerEffect::recordInput( juce::AudioBuffer<float>& buffer, int channel )
 {
     auto* channelData = buffer.getReadPointer( channel );
     int bufferSize    = buffer.getNumSamples();
+    int writeEnd      = writePosition + bufferSize; // will be write index on next iteration
 
-    for ( int i = 0; i < bufferSize; ++i ) {
-        writePosition = ( writePosition + 1 ) % recordBufferSize;
-        recordBuffer.setSample( 0, writePosition, channelData[ i ]);
+    bool shouldWrap = writeEnd >= recordBufferSize;
+
+    if ( shouldWrap ) {
+        // in certain situations (odd buffer size or in case host changes buffer size between process block
+        // calls) it is possible the end of the current recording iteration will exceed the record buffer size
+        // we can use a modulo operator to stay within bounds, but manually managing the loops overcomes
+        // potentially expensive divisor operations on the CPU
+
+        int samplesUntilWrap = recordBufferSize - writePosition;
+        
+        for ( int i = 0; i < samplesUntilWrap; ++i, ++writePosition ) {
+            recordBuffer.setSample( 0, writePosition, channelData[ i ]);
+        }
+
+        writePosition = 0;
+        for ( int i = samplesUntilWrap; i < bufferSize; ++i, ++writePosition ) {
+            recordBuffer.setSample( 0, writePosition, channelData[ i ]);
+        }
+    } else {
+        for ( int i = 0; i < bufferSize; ++i, ++writePosition ) {
+            recordBuffer.setSample( 0, writePosition, channelData[ i ]);
+        }
     }
-} 
+}
 
 void DopplerEffect::updateReadPosition( int bufferSize )
 {
