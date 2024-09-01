@@ -35,6 +35,7 @@ namespace Parameters {
     static juce::String WET_DRY_MIX      = "wetDryMix";
     static juce::String REVERB_FREEZE    = "reverbFreeze";
     static juce::String INVERT_DIRECTION = "invertDirection";
+    static juce::String BEAT_SYNC        = "beatSync";
     
     namespace Ranges {
         static float LOW_BAND_MIN = 20.f;

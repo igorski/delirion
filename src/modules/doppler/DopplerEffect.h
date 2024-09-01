@@ -34,14 +34,15 @@ class DopplerEffect
     const float TWO_PI                 = 2.f * juce::MathConstants<float>::pi;
     const float DC_OFFSET_FILTER       = 0.995f;
     const float MAX_LFO_CYCLE_DURATION = 1.0f / Parameters::Config::LFO_MIN_RATE; // duration of the slowest LFO cycle in seconds
+    const float LFO_DEPTH              = ( 1.f / MAX_OBSERVER_DISTANCE ) * 0.025f;
     const float INTERPOLATION_SPEED    = 0.005f; // 0.0005f is interesting as it provides a tape slowdown effect
 
     public:
         DopplerEffect( double sampleRate, int bufferSize );
         ~DopplerEffect();
 
-        void setProperties( float speed, bool invert );
-        void setRecordingLength( float normalizedRange );
+        void setProperties( float speed, bool invert, bool sync );
+        void setRecordingLength( float durationInSeconds );
         void updateTempo( double tempo, int timeSigNominator, int timeSigDenominator );
         void onSequencerStart();
 
@@ -58,8 +59,9 @@ class DopplerEffect
         bool interpolateRate = true;
         
         void recordInput( juce::AudioBuffer<float>& buffer, int channel );
-        void updateReadPosition( int bufferSize );
-
+        void resetRecordBuffer();
+        void onPostApply( int readBuffers );
+        
         juce::AudioBuffer<float> recordBuffer;
         float fRecordBufferSize;
         int recordBufferSize;
@@ -67,15 +69,18 @@ class DopplerEffect
         int readPosition;
         int writePosition;
         bool invertDirection = true;
+        bool syncToBeat = false;
         int samplesPerBeat = std::numeric_limits<int>::max();
 
         bool readFromRecordBuffer = false;
         int totalRecordedSamples;
         int processedSamples;
         int minRequiredSamples;
+        int minRequiredSamplesInvert;
 
         float previousSampleValue   = 0.0f;
         float previousFilteredValue = 0.0f;
+        float crossfadeLength;
 
         float _sampleRate;
         int   _bufferSize;

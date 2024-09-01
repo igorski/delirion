@@ -74,7 +74,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
             params.push_back( std::make_unique<juce::AudioParameterBool> ( Parameters::LOW_LFO_LINK, "Low LFO link", true )); 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::MID_LFO_ODD,  "Mid LFO odd",  0.f, 1.f, 0.01f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::MID_LFO_EVEN, "Mid LFO even", 0.f, 1.f, 0.05f ));
-            params.push_back( std::make_unique<juce::AudioParameterBool> ( Parameters::MID_LFO_LINK, "Mid LFO link", true )); 
+            params.push_back( std::make_unique<juce::AudioParameterBool> ( Parameters::MID_LFO_LINK, "Mid LFO link", false )); 
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_LFO_ODD,   "Hi LFO odd",   0.f, 1.f, 0.f ));
             params.push_back( std::make_unique<juce::AudioParameterFloat>( Parameters::HI_LFO_EVEN,  "Hi LFO even",  0.f, 1.f, 0.f ));
             params.push_back( std::make_unique<juce::AudioParameterBool> ( Parameters::HI_LFO_LINK,  "Hi LFO link",  true )); 
@@ -97,7 +97,8 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
 
             params.push_back( std::make_unique<juce::AudioParameterBool>( Parameters::REVERB_FREEZE, "Freeze", false ));    
             params.push_back( std::make_unique<juce::AudioParameterBool>( Parameters::INVERT_DIRECTION, "Invert", Parameters::Config::INVERT_DIR_DEF ));   
-            
+            params.push_back( std::make_unique<juce::AudioParameterBool>( Parameters::BEAT_SYNC, "Beat sync", true ));
+
             return { params.begin(), params.end() };
         }
 
@@ -152,6 +153,7 @@ class AudioPluginAudioProcessor final : public juce::AudioProcessor, ParameterSu
         std::atomic<float>* wetDryMix;
         std::atomic<float>* reverbFreeze;
         std::atomic<float>* invertDirection;
+        std::atomic<float>* beatSync;
         
         //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR( AudioPluginAudioProcessor )
