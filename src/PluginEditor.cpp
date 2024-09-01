@@ -72,7 +72,7 @@ void AudioPluginAudioProcessorEditor::paint( juce::Graphics& g )
     juce::Image version = juce::ImageCache::getFromMemory( BinaryData::version_png, BinaryData::version_pngSize );
     g.drawImage(
         version,
-        scaledWidth - ( scaledVersionWidth + 15 ), scaledHeight - 37, scaledVersionWidth, scaledVersionHeight,
+        scaledWidth - ( scaledVersionWidth + 17 ), scaledHeight - 37, scaledVersionWidth, scaledVersionHeight,
         0, 0, VERSION_WIDTH, VERSION_HEIGHT, false
     );
 }

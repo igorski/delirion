@@ -163,7 +163,7 @@ void AudioPluginAudioProcessor::updateParameters()
     bool linkHi  = *hiLfoLink  >= 0.5f;
     bool freeze  = *reverbFreeze >= 0.5f;
     bool invert  = *invertDirection >= 0.5f;
-    bool sync    = *beatSync >= 0.5f;
+    bool sync    = *beatSync >= 0.5f && invert; // @todo sync glitchy on non-inverted Dopplers
  
     for ( int channel = 0; channel < channelAmount; ++channel ) {
         bool isOddChannel = channel % 2 == 0;

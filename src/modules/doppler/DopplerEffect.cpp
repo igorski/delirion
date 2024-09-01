@@ -26,7 +26,9 @@ DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpol
     _sampleRate = static_cast<float>( sampleRate );
     _bufferSize = bufferSize;
 
-    crossfadeLength = Calc::secondsToBuffer( 0.01f, _sampleRate ); // 10 ms crossfade
+    crossfadeSize = static_cast<float>( Calc::secondsToBuffer( CROSSFADE_DURATION, _sampleRate ));
+    crossfadeSamplesLeft = 0;
+    crossfadedSamples = 0;
 
     float maxDelay = ( MAX_OBSERVER_DISTANCE / SPEED_OF_SOUND ) / MIN_DOPPLER_RATE;
 
@@ -104,6 +106,8 @@ void DopplerEffect::updateTempo( double tempo, int timeSigNominator, int timeSig
     // convert the value to be a multiple of a single beat
     minRequiredSamples += ( minRequiredSamples % samplesPerBeat ); // ensure its larger than a single beat so it exceeds the above min
     minRequiredSamples = std::min( recordBufferSize, minRequiredSamples ); // keep within buffer bounds
+
+    resetRecordBuffer();
 }
 
 void DopplerEffect::onSequencerStart()
@@ -142,11 +146,10 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
     auto* channelData = buffer.getWritePointer( channel );
 
     float distanceMultiplier = lfoRate * TWO_PI;
-    float resampledIndex;
-
-    int crossfadeStart = -1; // Initialize to an invalid value to indicate no crossfade needed
 
     for ( int i = 0; i < bufferSize; ++i ) {
+
+        bool doCrossfade = crossfadeSamplesLeft > 0;
         
         // move the LFO and convert its position to a "distance in meters"
 
@@ -165,32 +168,20 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
             dopplerRate = rateInterpolator.setValue( dopplerRate );
         }
        
-        // calculate the read index of the sample inside the record buffer
+        float sampleValue = getResampledValue( dopplerRate, readPosition, i );
 
-        if ( invertDirection ) {
-            resampledIndex = ( readPosition + i ) * dopplerRate;
-        } else {
-            resampledIndex = ( readPosition + i ) / dopplerRate;
+        if ( doCrossfade ) {
+            float nextValue = getResampledValue( dopplerRate, getSyncedReadPosition(), i );
+            float mixFactor = crossfadedSamples / crossfadeSize;
+
+            sampleValue = ( 1.0f - mixFactor ) * sampleValue + mixFactor * nextValue;
+
+            ++crossfadedSamples;
+
+            if ( --crossfadeSamplesLeft == 0 ) {
+                readPosition = getSyncedReadPosition(); // crossfade complete, commit readPosition
+            }
         }
- 
-        // ensure the resampleIndex remains within record bounds
-
-        resampledIndex = fmod( resampledIndex, fRecordBufferSize );
-        if ( resampledIndex < 0 ) {
-            resampledIndex += fRecordBufferSize;
-        }
-        int index  = static_cast<int>( resampledIndex );
-        float frac = resampledIndex - static_cast<float>( index );
-
-        // calculate sample value using (more accurate) cubic interpolation
-
-        // float sampleValue = cubicInterpolator.getInterpolatedSample( recordBuffer, recordBufferSize, index, frac );
-
-        // calculate sample value using (faster) linear interpolation
-        
-        int nextIndex = ( index + 1 ) % recordBufferSize;
-        float sampleValue = recordBuffer.getSample( 0, index ) * ( 1.0f - frac ) +
-                            recordBuffer.getSample( 0, nextIndex ) * frac;
         
         // Apply a high-pass filter to remove DC offset
          
@@ -200,28 +191,17 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
 
         channelData[ i ] = filteredValue;
 
+        // beat detection
+
         if ( ++processedSamples >= samplesPerBeat ) {
             processedSamples = 0;
 
             if ( syncToBeat ) {
-                readPosition = writePosition - ( invertDirection ? minRequiredSamplesInvert : minRequiredSamples );
-                crossfadeStart = i;
+                crossfadeSamplesLeft = static_cast<int>( crossfadeSize );
+                crossfadedSamples = 0;
             }
         }
     }
-
-    // Apply crossfade after the loop if a beat was detected
-    if (crossfadeStart >= 0) {
-        for (int j = 0; j < crossfadeLength && (crossfadeStart + j) < bufferSize; ++j) {
-            int index = crossfadeStart + j;
-            float oldSample = channelData[index];
-            float newSample = recordBuffer.getSample(0, (readPosition + index) % recordBufferSize);
-            float mixFactor = j / static_cast<float>(crossfadeLength);
-
-            channelData[index] = (1.0f - mixFactor) * oldSample + mixFactor * newSample;
-        }
-    }
-
     onPostApply( bufferSize );
 }
 
