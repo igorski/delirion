@@ -105,6 +105,6 @@ void AudioPluginAudioProcessorEditor::resized()
     dryWetMixControl.setBounds( 519, 323, SLIDER_WIDTH, SLIDER_WIDTH );
     
     reverbFreezeControl.setBounds( 365, 343, SLIDER_WIDTH, SLIDER_WIDTH );
-    invertDirectionControl.setBounds( 422, 54, SLIDER_WIDTH, SLIDER_WIDTH );
-    beatSyncControl.setBounds( 258, 54, SLIDER_WIDTH, SLIDER_WIDTH );
+    invertDirectionControl.setBounds( 423, 54, SLIDER_WIDTH, SLIDER_WIDTH );
+    beatSyncControl.setBounds( 257, 54, SLIDER_WIDTH, SLIDER_WIDTH );
 }
