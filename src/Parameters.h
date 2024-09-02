@@ -48,11 +48,6 @@ namespace Parameters {
 
     namespace Config {
 
-        // recording duration is defined in seconds
-
-        static float REC_DURATION_MIN = 0.01161f;
-        static float REC_DURATION_MAX = 0.2322f;
-
         // LFO speed is defined in Hz
 
         static float LFO_MIN_RATE = 0.1f;

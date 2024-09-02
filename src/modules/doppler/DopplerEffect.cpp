@@ -32,9 +32,7 @@ DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpol
 
     float maxDelay = ( MAX_OBSERVER_DISTANCE / SPEED_OF_SOUND ) / MIN_DOPPLER_RATE;
 
-// @todo can we do something with MAX_LFO_CYCLE_DURATION once more ?
-    setRecordingLength( maxDelay * 20 );
-    // setRecordingLength( MAX_LFO_CYCLE_DURATION ); // recording should last for a single cycle at the lowest rate
+    setRecordingLength( maxDelay * 20 ); // multiplied the max value to give the read and write pointers some leeway
     
     maxRecordBufferSize = recordBufferSize; // recordBufferSize has been calculated by setRecordingLength()
     recordBuffer.setSize( 1, maxRecordBufferSize );
@@ -65,11 +63,6 @@ void DopplerEffect::setProperties( float speed, bool invert, bool sync )
 void DopplerEffect::setRecordingLength( float durationInSeconds )
 {
     int durationInSamples = Calc::secondsToBuffer( durationInSeconds, _sampleRate );
-/*
-    int durationInSamples = Calc::secondsToBuffer(
-        juce::jmap( durationInSeconds, 0.f, 1.f, Parameters::Config::REC_DURATION_MIN, Parameters::Config::REC_DURATION_MAX ),
-        _sampleRate
-    );*/
 
     if ( durationInSamples < 0 ) {
         return;
