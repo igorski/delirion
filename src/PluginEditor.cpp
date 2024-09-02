@@ -45,8 +45,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor( AudioPluginAud
     dryWetMixAtt = createControl( Parameters::WET_DRY_MIX, dryWetMixControl, false );
     
     reverbFreezeAtt = createControl( Parameters::REVERB_FREEZE, reverbFreezeControl );
-
     invertDirectionAtt = createControl( Parameters::INVERT_DIRECTION, invertDirectionControl );
+    beatSyncAtt = createControl( Parameters::BEAT_SYNC, beatSyncControl );
 
     scaledWidth  = static_cast<int>( ceil( WIDTH / 2 ));
     scaledHeight = static_cast<int>( ceil( HEIGHT / 2 ));
@@ -72,7 +72,7 @@ void AudioPluginAudioProcessorEditor::paint( juce::Graphics& g )
     juce::Image version = juce::ImageCache::getFromMemory( BinaryData::version_png, BinaryData::version_pngSize );
     g.drawImage(
         version,
-        scaledWidth - ( scaledVersionWidth + 15 ), scaledHeight - 37, scaledVersionWidth, scaledVersionHeight,
+        scaledWidth - ( scaledVersionWidth + 17 ), scaledHeight - 37, scaledVersionWidth, scaledVersionHeight,
         0, 0, VERSION_WIDTH, VERSION_HEIGHT, false
     );
 }
@@ -105,6 +105,6 @@ void AudioPluginAudioProcessorEditor::resized()
     dryWetMixControl.setBounds( 519, 323, SLIDER_WIDTH, SLIDER_WIDTH );
     
     reverbFreezeControl.setBounds( 365, 343, SLIDER_WIDTH, SLIDER_WIDTH );
-
-    invertDirectionControl.setBounds( 365, 49, SLIDER_WIDTH, SLIDER_WIDTH );
+    invertDirectionControl.setBounds( 423, 54, SLIDER_WIDTH, SLIDER_WIDTH );
+    beatSyncControl.setBounds( 257, 54, SLIDER_WIDTH, SLIDER_WIDTH );
 }

@@ -21,14 +21,20 @@
 
 DopplerEffect::DopplerEffect( double sampleRate, int bufferSize ) : rateInterpolator( 1.0f, INTERPOLATION_SPEED ), speedInterpolator( 1.f, INTERPOLATION_SPEED ), lfo( sampleRate )
 {
-    lfo.setDepth(( 1.f / MAX_OBSERVER_DISTANCE ) * 0.025f );
+    lfo.setDepth( LFO_DEPTH );
 
     _sampleRate = static_cast<float>( sampleRate );
     _bufferSize = bufferSize;
 
-    setRecordingLength( MAX_LFO_CYCLE_DURATION ); // recording should last for a single cycle at the lowest rate
-    maxRecordBufferSize = recordBufferSize; // recordBufferSize has been calculated by setRecordingLength()
+    crossfadeSize = static_cast<float>( Calc::secondsToBuffer( CROSSFADE_DURATION, _sampleRate ));
+    crossfadeSamplesLeft = 0;
+    crossfadedSamples = 0;
+
+    float maxDelay = ( MAX_OBSERVER_DISTANCE / SPEED_OF_SOUND ) / MIN_DOPPLER_RATE;
+
+    setRecordingLength( maxDelay * 20 ); // multiplied the max value to give the read and write pointers some leeway
     
+    maxRecordBufferSize = recordBufferSize; // recordBufferSize has been calculated by setRecordingLength()
     recordBuffer.setSize( 1, maxRecordBufferSize );
     recordBuffer.clear(); // fills buffer with silence
 
@@ -45,20 +51,18 @@ DopplerEffect::~DopplerEffect()
 
 /* public methods */
 
-void DopplerEffect::setProperties( float speed, bool invert )
+void DopplerEffect::setProperties( float speed, bool invert, bool sync )
 {
     float scaledSpeed = juce::jmap( speed, 0.f, 1.f, Parameters::Config::LFO_MIN_RATE, Parameters::Config::LFO_MAX_RATE );
     lfo.setRate( scaledSpeed );
 
     invertDirection = invert;
+    syncToBeat = sync;
 }
 
-void DopplerEffect::setRecordingLength( float normalizedRange )
+void DopplerEffect::setRecordingLength( float durationInSeconds )
 {
-    int durationInSamples = Calc::secondsToBuffer(
-        juce::jmap( normalizedRange, 0.f, 1.f, Parameters::Config::REC_DURATION_MIN, Parameters::Config::REC_DURATION_MAX ),
-        _sampleRate
-    );
+    int durationInSamples = Calc::secondsToBuffer( durationInSeconds, _sampleRate );
 
     if ( durationInSamples < 0 ) {
         return;
@@ -72,9 +76,6 @@ void DopplerEffect::setRecordingLength( float normalizedRange )
     float fBufferSize = static_cast<float>( _bufferSize );
     recordBufferSize  = static_cast<int>( ceil( static_cast<float>( durationInSamples ) / fBufferSize ) * fBufferSize );
     fRecordBufferSize = static_cast<float>( recordBufferSize );
-
-    // TODO check this logic if we are going to make this parameter automatable, this crackles like crazy
-    // when lowering the duration from the max 1.f value (readPosition probably needs attention too...)
 
     if ( writePosition > recordBufferSize ) {
         writePosition = 0;
@@ -92,69 +93,57 @@ void DopplerEffect::updateTempo( double tempo, int timeSigNominator, int timeSig
     // Calculate the number of samples needed to perform an upwards Doppler shift, as this requires
     // reading "forward in time", e.g.: the buffer needs to be prefilled before we can start reading.
     
-    // To be safe, the amount should be equal to: static_cast<int>( _sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE );
-    // though this requires a large pre-record buffer. We can "optimise" this at the risk of having an occasional glitch
-    // by going for a subset of a measure at the current tempo and time signature
-    
-    // minRequiredSamples = static_cast<int>( _sampleRate * MAX_DOPPLER_RATE ); // subset
-    minRequiredSamples = static_cast<int>( _sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE ); // full size buffer
-
+    minRequiredSamplesInvert = static_cast<int>( _sampleRate / 32.f ); // subset
+    minRequiredSamples       = static_cast<int>( _sampleRate * MAX_LFO_CYCLE_DURATION * MAX_DOPPLER_RATE ); // full size buffer
+   
     // convert the value to be a multiple of a single beat
     minRequiredSamples += ( minRequiredSamples % samplesPerBeat ); // ensure its larger than a single beat so it exceeds the above min
     minRequiredSamples = std::min( recordBufferSize, minRequiredSamples ); // keep within buffer bounds
+
+    resetRecordBuffer();
 }
 
 void DopplerEffect::onSequencerStart()
 {
     lfo.setPhase( 0.f );
-
-    readFromRecordBuffer = false;
-    totalRecordedSamples = 0;
-    processedSamples = 0;
-
-    readPosition = writePosition; // will first fill buffer for another minRequiredSamples before reading starts
+    resetRecordBuffer();
 }
 
 void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
 {
     recordInput( buffer, channel );
-
+    
     int bufferSize = buffer.getNumSamples();
-
+    
     if ( !readFromRecordBuffer ) {
+        // we first need n amount of samples recorded before we can start applying the effect
         totalRecordedSamples += bufferSize;
+
+        if ( invertDirection && totalRecordedSamples < minRequiredSamplesInvert ) {
+            return;
+        }
 
         if ( totalRecordedSamples >= minRequiredSamples ) {
             readFromRecordBuffer = true;
         } else if ( !invertDirection ) {
-            return; // need to fill up the record buffer before doing upward shifts
+            return; // need to fill up the record buffer even more before doing upward shifts
         }
     }
 
     float lfoRate = lfo.getRate();
 
     if ( lfoRate == 0.f ) {
-        updateReadPosition( bufferSize );
-        // processedSamples += bufferSize;
-        return; // nothing else to do
+        return onPostApply( bufferSize ); // nothing else to do
     }
 
     auto* channelData = buffer.getWritePointer( channel );
 
     float distanceMultiplier = lfoRate * TWO_PI;
-    float resampledIndex;
 
     for ( int i = 0; i < bufferSize; ++i ) {
 
-        /* // optional logic to alter effect on every beat
-        if ( ++processedSamples >= samplesPerBeat ) {
-            processedSamples = processedSamples % samplesPerBeat;
-            if ( beatSync ) {
-                // ...do stuff
-            }
-        }
-        */
-
+        bool doCrossfade = crossfadeSamplesLeft > 0;
+        
         // move the LFO and convert its position to a "distance in meters"
 
         float observerDistance = juce::jmap( lfo.peek(), -1.0f, 1.0f, MIN_OBSERVER_DISTANCE, MAX_OBSERVER_DISTANCE );
@@ -171,43 +160,42 @@ void DopplerEffect::apply( juce::AudioBuffer<float>& buffer, int channel )
         if ( interpolateRate ) {
             dopplerRate = rateInterpolator.setValue( dopplerRate );
         }
+       
+        float sampleValue = getResampledValue( dopplerRate, readPosition, i );
 
-        // calculate the read index of the sample inside the record buffer
+        if ( doCrossfade ) {
+            float nextValue = getResampledValue( dopplerRate, getSyncedReadPosition(), i );
+            float mixFactor = crossfadedSamples / crossfadeSize;
 
-        if ( invertDirection ) {
-            resampledIndex = ( readPosition + i ) * dopplerRate;
-        } else {
-            resampledIndex = ( readPosition + i ) / dopplerRate;
+            sampleValue = ( 1.0f - mixFactor ) * sampleValue + mixFactor * nextValue;
+
+            ++crossfadedSamples;
+
+            if ( --crossfadeSamplesLeft == 0 ) {
+                readPosition = getSyncedReadPosition(); // crossfade complete, commit readPosition
+            }
         }
-
-        // ensure the resampleIndex remains within record bounds
-
-        resampledIndex = fmod( resampledIndex, fRecordBufferSize );
-        if ( resampledIndex < 0 ) {
-            resampledIndex += recordBufferSize;
-        }
-        int index  = static_cast<int>( resampledIndex );
-        float frac = resampledIndex - static_cast<float>( index );
-
-        // calculate sample value using (more accurate) cubic interpolation
-
-        // float sampleValue = cubicInterpolator.getInterpolatedSample( recordBuffer, recordBufferSize, index, frac );
-
-        // calculate sample value using (faster) linear interpolation
-        
-        int nextIndex = ( index + 1 ) % recordBufferSize;
-        float sampleValue = recordBuffer.getSample( 0, index ) * ( 1.0f - frac ) +
-                            recordBuffer.getSample( 0, nextIndex ) * frac;
         
         // Apply a high-pass filter to remove DC offset
          
         float filteredValue   = sampleValue - previousSampleValue + DC_OFFSET_FILTER * previousFilteredValue;
         previousSampleValue   = sampleValue;
         previousFilteredValue = filteredValue;
-        
+
         channelData[ i ] = filteredValue;
+
+        // beat detection
+
+        if ( ++processedSamples >= samplesPerBeat ) {
+            processedSamples = 0;
+
+            if ( syncToBeat ) {
+                crossfadeSamplesLeft = static_cast<int>( crossfadeSize );
+                crossfadedSamples = 0;
+            }
+        }
     }
-    updateReadPosition( bufferSize );
+    onPostApply( bufferSize );
 }
 
 /* private methods */
@@ -216,7 +204,7 @@ void DopplerEffect::recordInput( juce::AudioBuffer<float>& buffer, int channel )
 {
     auto* channelData = buffer.getReadPointer( channel );
     int bufferSize    = buffer.getNumSamples();
-    int writeEnd      = writePosition + bufferSize; // will be write index on next iteration
+    int writeEnd      = writePosition + bufferSize; // corresponds to the write index at start of the next iteration
 
     bool shouldWrap = writeEnd >= recordBufferSize;
 
@@ -243,9 +231,20 @@ void DopplerEffect::recordInput( juce::AudioBuffer<float>& buffer, int channel )
     }
 }
 
-void DopplerEffect::updateReadPosition( int bufferSize )
+void DopplerEffect::resetRecordBuffer()
 {
-    // note we omit the modulo operator here (when going from the end of recordBuffer back to the beginning,
-    // the resampleIndex-counter would be calculated to start from beginning as well, causing glitches in playback)
-    readPosition = ( readPosition + bufferSize );// % recordBufferSize;
+    recordBuffer.clear();
+
+    readFromRecordBuffer = false;
+    totalRecordedSamples = 0;
+    processedSamples     = 0;
+
+    writePosition = 0;
+    readPosition  = writePosition;
+}
+
+void DopplerEffect::onPostApply( int readBuffers )
+{
+    processedSamples += readBuffers;
+    readPosition += readBuffers;
 }

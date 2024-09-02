@@ -50,6 +50,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor(): AudioProcessor( BusesPro
     wetDryMix       = parameters.getRawParameterValue( Parameters::WET_DRY_MIX );
     reverbFreeze    = parameters.getRawParameterValue( Parameters::REVERB_FREEZE );
     invertDirection = parameters.getRawParameterValue( Parameters::INVERT_DIRECTION );
+    beatSync        = parameters.getRawParameterValue( Parameters::BEAT_SYNC );
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -162,13 +163,14 @@ void AudioPluginAudioProcessor::updateParameters()
     bool linkHi  = *hiLfoLink  >= 0.5f;
     bool freeze  = *reverbFreeze >= 0.5f;
     bool invert  = *invertDirection >= 0.5f;
+    bool sync    = *beatSync >= 0.5f && invert; // @todo sync glitchy on non-inverted Dopplers
  
     for ( int channel = 0; channel < channelAmount; ++channel ) {
         bool isOddChannel = channel % 2 == 0;
 
-        lowDopplerEffects[ channel ]->setProperties( linkLow || isOddChannel ? *lowLfoOdd : *lowLfoEven, invert );
-        midDopplerEffects[ channel ]->setProperties( linkMid || isOddChannel ? *midLfoOdd : *midLfoEven, invert );
-        hiDopplerEffects [ channel ]->setProperties( linkHi  || isOddChannel ? *hiLfoOdd  : *hiLfoEven,  invert );
+        lowDopplerEffects[ channel ]->setProperties( linkLow || isOddChannel ? *lowLfoOdd : *lowLfoEven, invert, sync );
+        midDopplerEffects[ channel ]->setProperties( linkMid || isOddChannel ? *midLfoOdd : *midLfoEven, invert, sync );
+        hiDopplerEffects [ channel ]->setProperties( linkHi  || isOddChannel ? *hiLfoOdd  : *hiLfoEven,  invert, sync );
 
         reverbs[ channel ]->setWet( freeze ? 2.f : 0.f ); // make louder when frozen
         reverbs[ channel ]->setDry( freeze ? 0.f : 1.f  );

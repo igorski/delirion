@@ -34,14 +34,16 @@ class DopplerEffect
     const float TWO_PI                 = 2.f * juce::MathConstants<float>::pi;
     const float DC_OFFSET_FILTER       = 0.995f;
     const float MAX_LFO_CYCLE_DURATION = 1.0f / Parameters::Config::LFO_MIN_RATE; // duration of the slowest LFO cycle in seconds
+    const float LFO_DEPTH              = ( 1.f / MAX_OBSERVER_DISTANCE ) * 0.025f;
     const float INTERPOLATION_SPEED    = 0.005f; // 0.0005f is interesting as it provides a tape slowdown effect
+    const float CROSSFADE_DURATION     = 0.01f; // in seconds
 
     public:
         DopplerEffect( double sampleRate, int bufferSize );
         ~DopplerEffect();
 
-        void setProperties( float speed, bool invert );
-        void setRecordingLength( float normalizedRange );
+        void setProperties( float speed, bool invert, bool sync );
+        void setRecordingLength( float durationInSeconds );
         void updateTempo( double tempo, int timeSigNominator, int timeSigDenominator );
         void onSequencerStart();
 
@@ -58,8 +60,48 @@ class DopplerEffect
         bool interpolateRate = true;
         
         void recordInput( juce::AudioBuffer<float>& buffer, int channel );
-        void updateReadPosition( int bufferSize );
+        void resetRecordBuffer();
+        void onPostApply( int readBuffers );
 
+        inline float getResampledValue( float dopplerRate, int readPos, int readOffset )
+        {
+            float resampledIndex;
+
+            // calculate the read index of the sample inside the record buffer
+
+            if ( invertDirection ) {
+                resampledIndex = ( readPos + readOffset ) * dopplerRate;
+            } else {
+                resampledIndex = ( readPos + readOffset ) / dopplerRate;
+            }
+    
+            // ensure the resampleIndex remains within record bounds
+
+            resampledIndex = fmod( resampledIndex, fRecordBufferSize );
+            if ( resampledIndex < 0 ) {
+                resampledIndex += fRecordBufferSize;
+            }
+            int index  = static_cast<int>( resampledIndex );
+            float frac = resampledIndex - static_cast<float>( index );
+
+            // calculate sample value using (more accurate) cubic interpolation
+
+            // float sampleValue = cubicInterpolator.getInterpolatedSample( recordBuffer, recordBufferSize, index, frac );
+
+            // calculate sample value using (faster) linear interpolation
+            
+            int nextIndex = ( index + 1 ) % recordBufferSize;
+            float sampleValue = recordBuffer.getSample( 0, index ) * ( 1.0f - frac ) +
+                                recordBuffer.getSample( 0, nextIndex ) * frac;
+
+            return sampleValue;
+        }
+
+        inline int getSyncedReadPosition()
+        {
+            return writePosition - ( invertDirection ? minRequiredSamplesInvert : minRequiredSamples );
+        }
+        
         juce::AudioBuffer<float> recordBuffer;
         float fRecordBufferSize;
         int recordBufferSize;
@@ -67,15 +109,20 @@ class DopplerEffect
         int readPosition;
         int writePosition;
         bool invertDirection = true;
-        int samplesPerBeat = std::numeric_limits<int>::max();
-
+        bool syncToBeat = false;
+        
         bool readFromRecordBuffer = false;
         int totalRecordedSamples;
         int processedSamples;
         int minRequiredSamples;
+        int minRequiredSamplesInvert;
+        int samplesPerBeat = std::numeric_limits<int>::max();
 
         float previousSampleValue   = 0.0f;
         float previousFilteredValue = 0.0f;
+        float crossfadeSize;
+        int crossfadeSamplesLeft;
+        int crossfadedSamples;
 
         float _sampleRate;
         int   _bufferSize;

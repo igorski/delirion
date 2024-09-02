@@ -70,6 +70,7 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         juce::Slider dryWetMixControl;
         juce::ToggleButton reverbFreezeControl;
         juce::ToggleButton invertDirectionControl;
+        juce::ToggleButton beatSyncControl;
 
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowLfoOddAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowLfoEvenAtt;
@@ -90,6 +91,7 @@ class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dryWetMixAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> reverbFreezeAtt;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> invertDirectionAtt;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> beatSyncAtt;
     
         inline std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> createControl( const juce::String& title, juce::Slider& controlElement, bool rotary )
         {
