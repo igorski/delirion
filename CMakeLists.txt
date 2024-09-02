@@ -20,7 +20,7 @@ cmake_minimum_required(VERSION 3.22)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 set(PROJECT_NAME "delirion") # equals build target
-set(PROJECT_VERSION 1.0.1)
+set(PROJECT_VERSION 1.1.0)
 set(PLUGIN_NAME "Delirion")
 
 ######################
