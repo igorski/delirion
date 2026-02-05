@@ -21,7 +21,7 @@ run the following to clone the JUCE framework into a subfolder `JUCE`, relative 
 git clone https://github.com/juce-framework/JUCE
 ```
 
-_*The version used to create this plugin was [8.0.1](https://github.com/juce-framework/JUCE/releases/tag/8.0.1)_
+_*The version used to create this plugin was [8.0.10](https://github.com/juce-framework/JUCE/releases/tag/8.0.10)_
 
 ### Build
 
@@ -37,4 +37,18 @@ After which you can run:
 
 ```
 cmake --build
+```
+
+### Signing the plugin on macOS
+
+You will need to have your code signing set up appropriately. Assuming you have set up your Apple Developer account, you can find your signing identity like so:
+
+```
+security find-identity -p codesigning -v 
+```
+
+From which you can take your name and team id (the code between parentheses) and pass them to the build script like so:
+
+```
+sh build.sh --team_id TEAM_ID --identity "YOUR_NAME"
 ```
