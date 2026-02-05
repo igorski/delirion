@@ -48,9 +48,8 @@ if(UNIX)
        # set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "XXXXXXXXXX" CACHE STRING "" FORCE)
     endif()
     if(APPLE)
-       # TODO make this work to support High Sierra and up
-       # set(CMAKE_OSX_SYSROOT macosx10.13)
-       # set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
+        # support macOS Catalina and up
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
     else()
         set(LINUX true)
     endif()
