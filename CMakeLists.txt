@@ -48,7 +48,10 @@ if(UNIX)
        # set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "XXXXXXXXXX" CACHE STRING "" FORCE)
     endif()
     if(APPLE)
-        # support macOS Catalina and up
+        # support macOS Catalina (10.15) and up
+        # NOTE: using CMAKE_OSX_SYSROOT requires having this SDK on your system. The generated symbols for the plugin should
+        # however not contain symbols unavailable to 10.15, making use of only CMAKE_OSX_DEPLOYMENT_TARGET sufficient.
+        # set(CMAKE_OSX_SYSROOT macosx10.15)
         set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
     else()
         set(LINUX true)
